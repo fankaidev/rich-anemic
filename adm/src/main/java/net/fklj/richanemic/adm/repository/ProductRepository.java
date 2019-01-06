@@ -76,13 +76,13 @@ public class ProductRepository {
 
     public boolean increaseVariantSoldCount(int variantId, int quantity) {
         return db.update("UPDATE variant SET soldCount = soldCount + :quantity " +
-                        "WHERE id = :id AND (quota = 0 || quota >= soldCount + :quantity)",
+                        "WHERE id = :id AND (quota = 0 OR quota >= soldCount + :quantity)",
                 ImmutableMap.of("id", variantId, "quantity", quantity)) > 0;
     }
 
     public boolean increaseProductSoldCount(int productId, int quantity) {
         return db.update("UPDATE product SET soldCount = soldCount + :quantity " +
-                        "WHERE id = :id AND (quota = 0 || quota >= soldCount + :quantity)",
+                        "WHERE id = :id AND (quota = 0 OR quota >= soldCount + :quantity)",
                 ImmutableMap.of("id", productId, "quantity", quantity)) > 0;
     }
 }

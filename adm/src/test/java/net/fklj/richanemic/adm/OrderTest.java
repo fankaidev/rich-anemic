@@ -3,48 +3,37 @@ package net.fklj.richanemic.adm;
 import net.fklj.richanemic.adm.data.Order;
 import net.fklj.richanemic.adm.data.OrderItem;
 import net.fklj.richanemic.adm.data.OrderStatus;
-import net.fklj.richanemic.adm.exception.CommerceException;
-import net.fklj.richanemic.adm.exception.CommerceException.DuplicateProductException;
-import net.fklj.richanemic.adm.exception.CommerceException.InactiveProductException;
-import net.fklj.richanemic.adm.exception.CommerceException.InactiveVariantException;
-import net.fklj.richanemic.adm.exception.CommerceException.InvalidQuantityException;
-import net.fklj.richanemic.adm.exception.CommerceException.ProductOutOfStockException;
-import net.fklj.richanemic.adm.exception.CommerceException.VariantMismatchException;
-import net.fklj.richanemic.adm.exception.CommerceException.VariantOutOfStockException;
-import net.fklj.richanemic.adm.service.OrderService;
+import net.fklj.richanemic.adm.service.OrderAggregateService;
+import net.fklj.richanemic.data.CommerceException;
+import net.fklj.richanemic.data.CommerceException.DuplicateProductException;
+import net.fklj.richanemic.data.CommerceException.InactiveProductException;
+import net.fklj.richanemic.data.CommerceException.InactiveVariantException;
+import net.fklj.richanemic.data.CommerceException.InvalidQuantityException;
+import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
+import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
+import net.fklj.richanemic.data.CommerceException.VariantOutOfStockException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
+import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 public class OrderTest extends BaseTest {
 
     @Autowired
-    private OrderService orderService;
-
-    private int createOrder(int userId, int productId, int variantId, int quantity)
-            throws CommerceException {
-        OrderItem item = genItem(productId, variantId, quantity);
-        List<OrderItem> items = Collections.singletonList(item);
-        return orderService.createOrder(userId, items);
-    }
-
-    private OrderItem genItem(int productId, int variantId, int quantity) {
-        return OrderItem.builder()
-                    .productId(productId)
-                    .variantId(variantId)
-                    .quantity(quantity)
-                    .build();
-    }
+    private OrderAggregateService orderService;
 
     @Test
     public void testCreateOrder() throws CommerceException {
@@ -72,6 +61,23 @@ public class OrderTest extends BaseTest {
         assertThat(order.getStatus(), is(OrderStatus.CANCELLED));
 
         orderService.cancelOrder(orderId); // allow double cancel
+    }
+
+    @Test
+    public void testGetOrderItems() throws CommerceException {
+        createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, 1);
+        createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, 1);
+        createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR3_Q1_ID, 1);
+        List<OrderItem> productItems = orderService.getOrderItemsByProductId(PRODUCT2_Q0_ID);
+        assertThat(productItems, hasSize(3));
+        List<OrderItem> variantItems = orderService.getOrderItemsByVariantId(P2_VAR2_Q0_ID);
+        assertThat(variantItems, hasSize(2));
+        int itemId = variantItems.get(0).getId();
+        Optional<OrderItem> item = orderService.getOrderItem(itemId);
+        assertTrue(item.isPresent());
+        Map<Integer, OrderItem> itemMap = orderService.getOrderItemsByOrderItemIds(
+                singletonList(itemId));
+        assertThat(itemMap, hasKey(item.get().getId()));
     }
 
     @Test

@@ -9,13 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>anemic</artifactId>
-    <dependencies>
-        <dependency>
-            <groupId>net.fklj</groupId>
-            <artifactId>common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
+    <artifactId>common</artifactId>
+
 
 </project>

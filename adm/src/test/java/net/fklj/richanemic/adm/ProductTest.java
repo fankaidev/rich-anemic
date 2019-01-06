@@ -4,18 +4,18 @@ import net.fklj.richanemic.adm.data.Product;
 import net.fklj.richanemic.adm.data.ProductStatus;
 import net.fklj.richanemic.adm.data.Variant;
 import net.fklj.richanemic.adm.data.VariantStatus;
-import net.fklj.richanemic.adm.exception.CommerceException;
-import net.fklj.richanemic.adm.exception.CommerceException.InvalidProductException;
-import net.fklj.richanemic.adm.exception.CommerceException.InvalidVariantException;
-import net.fklj.richanemic.adm.exception.CommerceException.VariantQuotaException;
-import net.fklj.richanemic.adm.service.ProductService;
+import net.fklj.richanemic.adm.service.ProductAggregateService;
+import net.fklj.richanemic.data.CommerceException;
+import net.fklj.richanemic.data.CommerceException.InvalidProductException;
+import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
+import net.fklj.richanemic.data.CommerceException.VariantQuotaException;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Optional;
 
-import static net.fklj.richanemic.adm.data.Constants.PRODUCT_MAX_PRICE;
+import static net.fklj.richanemic.data.Constants.PRODUCT_MAX_PRICE;
 import static org.hamcrest.Matchers.emptyIterable;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -25,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 public class ProductTest extends BaseTest {
 
     @Autowired
-    private ProductService productService;
+    private ProductAggregateService productService;
 
     @Test
     public void testCreateProduct() throws CommerceException {
@@ -60,7 +60,7 @@ public class ProductTest extends BaseTest {
     }
 
     @Test
-    public void testStatus() throws CommerceException {
+    public void testStatus() {
         productService.activateProduct(PRODUCT1_INACTIVE_ID);
         assertThat(productService.getProduct(PRODUCT1_INACTIVE_ID).get().getStatus(),
                 is(ProductStatus.ACTIVE));
@@ -77,7 +77,7 @@ public class ProductTest extends BaseTest {
     }
 
     @Test
-    public void testGetVariants() throws CommerceException {
+    public void testGetVariants() {
         Optional<Variant> p1v1 = productService.getVariant(P1_VAR1_INACTIVE_ID);
         assertTrue(p1v1.isPresent());
         assertThat(p1v1.get().getId(), is(P1_VAR1_INACTIVE_ID));

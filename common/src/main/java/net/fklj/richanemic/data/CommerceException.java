@@ -1,4 +1,4 @@
-package net.fklj.richanemic.adm.exception;
+package net.fklj.richanemic.data;
 
 public abstract class CommerceException extends Exception {
 

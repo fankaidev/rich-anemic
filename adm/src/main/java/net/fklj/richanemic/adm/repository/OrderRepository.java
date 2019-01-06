@@ -12,8 +12,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Service;
 
 import java.sql.Types;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 
@@ -65,5 +69,31 @@ public class OrderRepository {
     public void updateOrderStatus(int orderId, OrderStatus status) {
         db.update("UPDATE `order` SET status = :status WHERE id = :id",
                 ImmutableMap.of("status", status.toString(), "id", orderId));
+    }
+
+    public Optional<OrderItem> getOrderItem(int orderItemId) {
+        OrderItem item = db.queryForObject("SELECT * FROM order_item WHERE id = :id",
+                singletonMap("id", orderItemId),
+                ORDER_ITEM_MAPPER);
+        return Optional.ofNullable(item);
+    }
+
+    public Map<Integer, OrderItem> getOrderItemsByOrderItemIds(Collection<Integer> orderItemIds) {
+        List<OrderItem> items = db.query("SELECT * FROM order_item WHERE id IN (:ids)",
+                singletonMap("ids", orderItemIds),
+                ORDER_ITEM_MAPPER);
+        return items.stream().collect(Collectors.toMap(OrderItem::getId, Function.identity()));
+    }
+
+    public List<OrderItem> getOrderItemsByProductId(int productId) {
+        return db.query("SELECT * FROM order_item WHERE productId = :productId",
+                singletonMap("productId", productId),
+                ORDER_ITEM_MAPPER);
+    }
+
+    public List<OrderItem> getOrderItemsByVariantId(int variantId) {
+        return db.query("SELECT * FROM order_item WHERE variantId = :variantId",
+                singletonMap("variantId", variantId),
+                ORDER_ITEM_MAPPER);
     }
 }
