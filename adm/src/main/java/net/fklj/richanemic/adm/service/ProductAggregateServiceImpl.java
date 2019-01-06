@@ -2,10 +2,10 @@ package net.fklj.richanemic.adm.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.fklj.richanemic.adm.data.Product;
-import net.fklj.richanemic.adm.data.ProductStatus;
 import net.fklj.richanemic.adm.data.Variant;
-import net.fklj.richanemic.adm.data.VariantStatus;
 import net.fklj.richanemic.adm.repository.ProductRepository;
+import net.fklj.richanemic.data.ProductStatus;
+import net.fklj.richanemic.data.VariantStatus;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidProductException;
 import net.fklj.richanemic.data.CommerceException.InvalidVariantException;

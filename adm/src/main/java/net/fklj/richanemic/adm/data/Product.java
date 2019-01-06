@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.fklj.richanemic.data.ProductStatus;
 
 import static net.fklj.richanemic.data.Constants.PRODUCT_QUOTA_INFINITY;
 

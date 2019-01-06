@@ -3,8 +3,9 @@ package net.fklj.richanemic.adm.repository;
 import com.google.common.collect.ImmutableMap;
 import net.fklj.richanemic.adm.data.Order;
 import net.fklj.richanemic.adm.data.OrderItem;
-import net.fklj.richanemic.adm.data.OrderStatus;
+import net.fklj.richanemic.data.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
@@ -49,15 +50,16 @@ public class OrderRepository {
     }
 
     public Optional<Order> getOrder(int orderId) {
-        Order order = db.queryForObject("SELECT * FROM `order` WHERE id = :id",
-                singletonMap("id", orderId),
-                ORDER_MAPPER);
-        if (order == null) {
+        try {
+            Order order = db.queryForObject("SELECT * FROM `order` WHERE id = :id",
+                    singletonMap("id", orderId),
+                    ORDER_MAPPER);
+            List<OrderItem> items = getItemsOfOrder(orderId);
+            order.setItems(items);
+            return Optional.of(order);
+        } catch (IncorrectResultSizeDataAccessException e) {
             return Optional.empty();
         }
-        List<OrderItem> items = getItemsOfOrder(orderId);
-        order.setItems(items);
-        return Optional.of(order);
     }
 
     private List<OrderItem> getItemsOfOrder(int orderId) {
@@ -72,10 +74,13 @@ public class OrderRepository {
     }
 
     public Optional<OrderItem> getOrderItem(int orderItemId) {
-        OrderItem item = db.queryForObject("SELECT * FROM order_item WHERE id = :id",
-                singletonMap("id", orderItemId),
-                ORDER_ITEM_MAPPER);
-        return Optional.ofNullable(item);
+        try {
+            OrderItem item = db.queryForObject("SELECT * FROM order_item WHERE id = :id",
+                    singletonMap("id", orderItemId), ORDER_ITEM_MAPPER);
+            return Optional.of(item);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     public Map<Integer, OrderItem> getOrderItemsByOrderItemIds(Collection<Integer> orderItemIds) {

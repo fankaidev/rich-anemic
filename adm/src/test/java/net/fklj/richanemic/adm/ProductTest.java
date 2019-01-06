@@ -1,14 +1,14 @@
 package net.fklj.richanemic.adm;
 
 import net.fklj.richanemic.adm.data.Product;
-import net.fklj.richanemic.adm.data.ProductStatus;
 import net.fklj.richanemic.adm.data.Variant;
-import net.fklj.richanemic.adm.data.VariantStatus;
 import net.fklj.richanemic.adm.service.ProductAggregateService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidProductException;
 import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
 import net.fklj.richanemic.data.CommerceException.VariantQuotaException;
+import net.fklj.richanemic.data.ProductStatus;
+import net.fklj.richanemic.data.VariantStatus;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

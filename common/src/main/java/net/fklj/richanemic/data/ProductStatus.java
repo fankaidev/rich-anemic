@@ -1,4 +1,4 @@
-package net.fklj.richanemic.adm.data;
+package net.fklj.richanemic.data;
 
 public enum ProductStatus {
     INACTIVE,

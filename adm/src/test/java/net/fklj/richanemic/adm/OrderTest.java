@@ -2,7 +2,6 @@ package net.fklj.richanemic.adm;
 
 import net.fklj.richanemic.adm.data.Order;
 import net.fklj.richanemic.adm.data.OrderItem;
-import net.fklj.richanemic.adm.data.OrderStatus;
 import net.fklj.richanemic.adm.service.OrderAggregateService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.DuplicateProductException;
@@ -12,6 +11,7 @@ import net.fklj.richanemic.data.CommerceException.InvalidQuantityException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
 import net.fklj.richanemic.data.CommerceException.VariantOutOfStockException;
+import net.fklj.richanemic.data.OrderStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +72,7 @@ public class OrderTest extends BaseTest {
         assertThat(productItems, hasSize(3));
         List<OrderItem> variantItems = orderService.getOrderItemsByVariantId(P2_VAR2_Q0_ID);
         assertThat(variantItems, hasSize(2));
+        assertThat(orderService.getOrderItemsByVariantId(P1_VAR1_INACTIVE_ID), hasSize(0));
         int itemId = variantItems.get(0).getId();
         Optional<OrderItem> item = orderService.getOrderItem(itemId);
         assertTrue(item.isPresent());

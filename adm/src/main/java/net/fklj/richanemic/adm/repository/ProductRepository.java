@@ -1,10 +1,10 @@
 package net.fklj.richanemic.adm.repository;
 
 import com.google.common.collect.ImmutableMap;
-import net.fklj.richanemic.adm.data.Product;
-import net.fklj.richanemic.adm.data.ProductStatus;
 import net.fklj.richanemic.adm.data.Variant;
-import net.fklj.richanemic.adm.data.VariantStatus;
+import net.fklj.richanemic.adm.data.Product;
+import net.fklj.richanemic.data.ProductStatus;
+import net.fklj.richanemic.data.VariantStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
