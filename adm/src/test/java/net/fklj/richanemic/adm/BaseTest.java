@@ -1,13 +1,18 @@
 package net.fklj.richanemic.adm;
 
 import net.fklj.richanemic.adm.data.OrderItem;
-import net.fklj.richanemic.data.CommerceException;
+import net.fklj.richanemic.adm.repository.BalanceRepository;
+import net.fklj.richanemic.adm.repository.CouponRepository;
 import net.fklj.richanemic.adm.repository.OrderRepository;
 import net.fklj.richanemic.adm.repository.ProductRepository;
+import net.fklj.richanemic.adm.service.BalanceService;
+import net.fklj.richanemic.adm.service.CouponService;
 import net.fklj.richanemic.adm.service.OrderAggregateService;
 import net.fklj.richanemic.adm.service.OrderAggregateServiceImpl;
+import net.fklj.richanemic.adm.service.PayService;
 import net.fklj.richanemic.adm.service.ProductAggregateService;
 import net.fklj.richanemic.adm.service.ProductAggregateServiceImpl;
+import net.fklj.richanemic.data.CommerceException;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +31,9 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @ContextConfiguration(classes = {
         TestDbConfiguration.class,
         ProductAggregateServiceImpl.class, OrderAggregateServiceImpl.class,
-        ProductRepository.class, OrderRepository.class
+        ProductRepository.class, OrderRepository.class,
+        BalanceService.class, BalanceRepository.class,
+        CouponService.class, CouponRepository.class, PayService.class
 })
 public abstract class BaseTest {
 
@@ -35,6 +42,9 @@ public abstract class BaseTest {
 
     @Autowired
     private OrderAggregateService orderService;
+
+    @Autowired
+    private CouponService couponService;
 
     protected int PRODUCT1_INACTIVE_ID;
     protected int P1_VAR1_INACTIVE_ID;
@@ -48,14 +58,20 @@ public abstract class BaseTest {
     protected int P3_VAR1_Q1_ID;
     protected int P3_VAR2_Q2_ID;
 
+    protected final int PRODUCT_PRICE = 10;
+
     protected final int USER1_ID = 999;
+
+    protected int USER1_COUPON1_VALUE_10_ID;
+
+    protected int USER1_COUPON2_VALUE_20_ID;
 
     @Before
     public void BaseTest() throws CommerceException {
-        PRODUCT1_INACTIVE_ID = productService.createProduct(10, PRODUCT_QUOTA_INFINITY);
+        PRODUCT1_INACTIVE_ID = productService.createProduct(PRODUCT_PRICE, PRODUCT_QUOTA_INFINITY);
         P1_VAR1_INACTIVE_ID = productService.createVariant(PRODUCT1_INACTIVE_ID, PRODUCT_QUOTA_INFINITY);
 
-        PRODUCT2_Q0_ID = productService.createProduct(10, PRODUCT_QUOTA_INFINITY);
+        PRODUCT2_Q0_ID = productService.createProduct(PRODUCT_PRICE, PRODUCT_QUOTA_INFINITY);
         productService.activateProduct(PRODUCT2_Q0_ID);
         P2_VAR1_INACTIVE_ID = productService.createVariant(PRODUCT2_Q0_ID, PRODUCT_QUOTA_INFINITY);
         P2_VAR2_Q0_ID = productService.createVariant(PRODUCT2_Q0_ID, PRODUCT_QUOTA_INFINITY);
@@ -63,12 +79,15 @@ public abstract class BaseTest {
         P2_VAR3_Q1_ID = productService.createVariant(PRODUCT2_Q0_ID, 1);
         productService.activateVariant(P2_VAR3_Q1_ID);
 
-        PRODUCT3_Q9_ID = productService.createProduct(10, 9);
+        PRODUCT3_Q9_ID = productService.createProduct(PRODUCT_PRICE, 9);
         productService.activateProduct(PRODUCT3_Q9_ID);
         P3_VAR1_Q1_ID = productService.createVariant(PRODUCT3_Q9_ID, 1);
         productService.activateVariant(P3_VAR1_Q1_ID);
         P3_VAR2_Q2_ID = productService.createVariant(PRODUCT3_Q9_ID, 2);
         productService.activateVariant(P3_VAR1_Q1_ID);
+
+        USER1_COUPON1_VALUE_10_ID = couponService.grantCoupon(USER1_ID, 10);
+        USER1_COUPON2_VALUE_20_ID = couponService.grantCoupon(USER1_ID, 20);
     }
 
 

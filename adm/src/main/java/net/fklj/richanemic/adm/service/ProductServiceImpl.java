@@ -7,7 +7,9 @@ import net.fklj.richanemic.adm.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -30,6 +32,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Variant> getVariantsOfProduct(int productId) {
         return productRepository.getVariantByProductId(productId);
+    }
+
+    @Override
+    public Map<Integer, Product> getProducts(Collection<Integer> productIds) {
+        return productRepository.getProducts(productIds);
     }
 
 }

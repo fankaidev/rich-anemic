@@ -13,8 +13,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 
@@ -84,5 +88,12 @@ public class ProductRepository {
         return db.update("UPDATE product SET soldCount = soldCount + :quantity " +
                         "WHERE id = :id AND (quota = 0 OR quota >= soldCount + :quantity)",
                 ImmutableMap.of("id", productId, "quantity", quantity)) > 0;
+    }
+
+    public Map<Integer, Product> getProducts(Collection<Integer> productIds) {
+        return db.query("SELECT * FROM product WHERE id in (:ids)",
+                singletonMap("ids", productIds), PRODUCT_MAPPER)
+                .stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
     }
 }

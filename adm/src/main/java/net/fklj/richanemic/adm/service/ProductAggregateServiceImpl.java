@@ -16,7 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static net.fklj.richanemic.data.Constants.PRODUCT_MAX_PRICE;
@@ -140,4 +142,8 @@ public class ProductAggregateServiceImpl extends ProductServiceImpl implements P
         productRepository.increaseProductSoldCount(productId, -quantity);
     }
 
+    @Override
+    public Map<Integer, Product> getProducts(Collection<Integer> productIds) {
+        return productRepository.getProducts(productIds);
+    }
 }
