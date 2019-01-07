@@ -4,6 +4,7 @@ import net.fklj.richanemic.adm.data.OrderItem;
 import net.fklj.richanemic.adm.repository.BalanceRepository;
 import net.fklj.richanemic.adm.repository.CouponRepository;
 import net.fklj.richanemic.adm.repository.OrderRepository;
+import net.fklj.richanemic.adm.repository.PaymentRepository;
 import net.fklj.richanemic.adm.repository.ProductRepository;
 import net.fklj.richanemic.adm.service.BalanceService;
 import net.fklj.richanemic.adm.service.CouponService;
@@ -13,6 +14,7 @@ import net.fklj.richanemic.adm.service.PayService;
 import net.fklj.richanemic.adm.service.ProductAggregateService;
 import net.fklj.richanemic.adm.service.ProductAggregateServiceImpl;
 import net.fklj.richanemic.data.CommerceException;
+import net.fklj.richanemic.data.OrderItemStatus;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +35,8 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
         ProductAggregateServiceImpl.class, OrderAggregateServiceImpl.class,
         ProductRepository.class, OrderRepository.class,
         BalanceService.class, BalanceRepository.class,
-        CouponService.class, CouponRepository.class, PayService.class
+        CouponService.class, CouponRepository.class,
+        PayService.class, PaymentRepository.class
 })
 public abstract class BaseTest {
 
@@ -103,6 +106,7 @@ public abstract class BaseTest {
                 .productId(productId)
                 .variantId(variantId)
                 .quantity(quantity)
+                .status(OrderItemStatus.PENDING)
                 .build();
     }
 

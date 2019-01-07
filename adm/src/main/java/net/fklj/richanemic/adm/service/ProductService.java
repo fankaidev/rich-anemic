@@ -17,4 +17,5 @@ public interface ProductService {
     List<Variant> getVariantsOfProduct(int productId);
 
     Map<Integer, Product> getProducts(Collection<Integer> productIds);
+
 }

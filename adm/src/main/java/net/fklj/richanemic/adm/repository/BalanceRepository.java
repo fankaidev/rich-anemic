@@ -1,17 +1,16 @@
 package net.fklj.richanemic.adm.repository;
 
 import net.fklj.richanemic.adm.data.Balance;
-import net.fklj.richanemic.adm.data.OrderItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
 
-@Service
+@Repository
 public class BalanceRepository {
 
     @Autowired

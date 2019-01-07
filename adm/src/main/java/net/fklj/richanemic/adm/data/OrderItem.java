@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.fklj.richanemic.data.OrderItemStatus;
 
 @Data
 @Builder
@@ -20,5 +21,7 @@ public class OrderItem {
     private int variantId;
 
     private int quantity;
+
+    private OrderItemStatus status;
 
 }

@@ -29,6 +29,7 @@ CREATE TABLE `order_item` (
     `productId` INT NOT NULL,
     `variantId` INT NOT NULL,
     `quantity` INT NOT NULL,
+    `status` VARCHAR(16) NOT NULL,
     KEY orderId (`orderId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -53,6 +54,7 @@ CREATE TABLE `payment` (
     `orderId` INT NOT NULL,
     `cashFee` INT NOT NULL,
     `couponId` INT NOT NULL,
-    KEY payment_userId (`userId`)
+    KEY payment_userId (`userId`),
+    KEY payment_orderId (`orderId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

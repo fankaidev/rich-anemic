@@ -16,6 +16,7 @@ import net.fklj.richanemic.data.CommerceException.OrderNotFoundException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
 import net.fklj.richanemic.data.CommerceException.VariantOutOfStockException;
+import net.fklj.richanemic.data.OrderItemStatus;
 import net.fklj.richanemic.data.OrderStatus;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.VariantStatus;
@@ -72,6 +73,7 @@ public class OrderAggregateServiceImpl extends OrderServiceImpl implements Order
 
         for (OrderItem item : order.getItems()) {
             productService.releaseQuota(item.getProductId(), item.getVariantId(), item.getQuantity());
+            orderRepository.updateOrderItemStatus(item.getId(), OrderItemStatus.CANCELLED);
         }
     }
 
