@@ -20,13 +20,13 @@ public class CouponTest extends BaseTest {
 
     @Test
     public void test() throws CommerceException {
-        Optional<Coupon> coupon = couponService.getCoupon(USER1_ID, USER1_COUPON1_VALUE_10_ID);
+        Optional<Coupon> coupon = couponService.getCoupon(USER1_ID, USER1_COUPON_10_ID);
         assertTrue(coupon.isPresent());
         assertThat(coupon.get().getValue(), is(10));
         assertThat(coupon.get().isUsed(), is(false));
 
         couponService.useCoupon(coupon.get().getId());
-        Optional<Coupon> afterUse = couponService.getCoupon(USER1_ID, USER1_COUPON1_VALUE_10_ID);
+        Optional<Coupon> afterUse = couponService.getCoupon(USER1_ID, USER1_COUPON_10_ID);
         assertThat(afterUse.get().isUsed(), is(true));
 
         assertThat(couponService.getCouponsOfUser(USER1_ID), hasSize(2));

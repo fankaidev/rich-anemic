@@ -65,9 +65,9 @@ public abstract class BaseTest {
 
     protected final int USER1_ID = 999;
 
-    protected int USER1_COUPON1_VALUE_10_ID;
+    protected int USER1_COUPON_10_ID;
 
-    protected int USER1_COUPON2_VALUE_20_ID;
+    protected int USER1_COUPON_20_ID;
 
     @Before
     public void BaseTest() throws CommerceException {
@@ -89,8 +89,8 @@ public abstract class BaseTest {
         P3_VAR2_Q2_ID = productService.createVariant(PRODUCT3_Q9_ID, 2);
         productService.activateVariant(P3_VAR1_Q1_ID);
 
-        USER1_COUPON1_VALUE_10_ID = couponService.grantCoupon(USER1_ID, 10);
-        USER1_COUPON2_VALUE_20_ID = couponService.grantCoupon(USER1_ID, 20);
+        USER1_COUPON_10_ID = couponService.grantCoupon(USER1_ID, 10);
+        USER1_COUPON_20_ID = couponService.grantCoupon(USER1_ID, 20);
     }
 
 

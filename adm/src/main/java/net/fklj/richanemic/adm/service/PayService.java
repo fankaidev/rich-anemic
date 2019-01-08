@@ -35,10 +35,10 @@ public class PayService {
     private CouponService couponService;
 
     @Autowired
-    private OrderService orderService;
+    private OrderAggregateService orderService;
 
     @Autowired
-    private ProductService productService;
+    private ProductAggregateService productService;
 
     @Autowired
     private PaymentRepository paymentRepository;
@@ -111,6 +111,22 @@ public class PayService {
 
     public Optional<Payment> getPaymentOfOrder(int orderId) {
         return paymentRepository.getPaymentOfOrder(orderId);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void callbackVariant(int variantId) throws CommerceException {
+        List<OrderItem> items = orderRepository.getOrderItemsByVariantId(variantId);
+        for (OrderItem item : items) {
+            // TODO: lock
+            Order order = orderService.getOrder(item.getOrderId())
+                    .orElseThrow(OrderNotFoundException::new);
+            if (order.getStatus() == OrderStatus.PAID) {
+                refundOrderItem(order.getId(), item.getId());
+            } else {
+                orderService.cancelOrder(order.getId());
+            }
+        }
+        productService.inactivateVariant(variantId);
     }
 
 }

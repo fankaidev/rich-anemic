@@ -4,17 +4,16 @@ import lombok.extern.slf4j.Slf4j;
 import net.fklj.richanemic.adm.data.Product;
 import net.fklj.richanemic.adm.data.Variant;
 import net.fklj.richanemic.adm.repository.ProductRepository;
-import net.fklj.richanemic.data.ProductStatus;
-import net.fklj.richanemic.data.VariantStatus;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidProductException;
 import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantQuotaException;
+import net.fklj.richanemic.data.ProductStatus;
+import net.fklj.richanemic.data.VariantStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,7 +31,6 @@ public class ProductAggregateServiceImpl extends ProductServiceImpl implements P
     private ProductRepository productRepository;
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public int createProduct(int price, int quota) throws CommerceException {
         if (price <= 0 || price > PRODUCT_MAX_PRICE) {
             log.error("create product with invalid price {}", price);
@@ -54,7 +52,6 @@ public class ProductAggregateServiceImpl extends ProductServiceImpl implements P
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public int createVariant(int productId, int quota) throws CommerceException {
         if (quota < 0) {
             log.error("create variant with invalid quota {}", quota);
@@ -91,7 +88,6 @@ public class ProductAggregateServiceImpl extends ProductServiceImpl implements P
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public int createProductWithDefaultVariant(int price, int quantity)
             throws CommerceException {
         int productId = createProduct(price, quantity);
@@ -100,32 +96,27 @@ public class ProductAggregateServiceImpl extends ProductServiceImpl implements P
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void activateProduct(int productId) {
         productRepository.updateProductStatus(productId, ProductStatus.ACTIVE);
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void inactivateProduct(int productId) {
         productRepository.updateProductStatus(productId, ProductStatus.INACTIVE);
     }
 
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void activateVariant(int variantId) {
         productRepository.updateVariantStatus(variantId, VariantStatus.ACTIVE);
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void inactivateVariant(int variantId) {
         productRepository.updateVariantStatus(variantId, VariantStatus.INACTIVE);
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void useQuota(int productId, int variantId, int quantity) throws CommerceException {
         if (!productRepository.increaseVariantSoldCount(variantId, quantity)) {
             throw new ProductOutOfStockException();
@@ -136,7 +127,6 @@ public class ProductAggregateServiceImpl extends ProductServiceImpl implements P
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void releaseQuota(int productId, int variantId, int quantity) {
         productRepository.increaseVariantSoldCount(variantId, -quantity);
         productRepository.increaseProductSoldCount(productId, -quantity);

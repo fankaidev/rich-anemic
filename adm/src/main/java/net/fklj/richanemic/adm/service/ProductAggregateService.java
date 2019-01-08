@@ -31,4 +31,5 @@ public interface ProductAggregateService extends ProductService {
 
     @Transactional(rollbackFor = Exception.class)
     void releaseQuota(int productId, int variantId, int quantity);
+
 }

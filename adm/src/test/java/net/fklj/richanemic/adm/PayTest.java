@@ -62,14 +62,14 @@ public class PayTest extends BaseTest {
 
         int quantity = 5;
         int orderId = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
-        payService.payOrder(orderId, USER1_COUPON2_VALUE_20_ID);
+        payService.payOrder(orderId, USER1_COUPON_20_ID);
         final int couponFee = 20;
         final int cashFee = PRODUCT_PRICE * quantity - couponFee;
         assertThat(balanceService.getBalance(USER1_ID).getAmount(), is(initAmount - cashFee));
 
         Order order = orderService.getOrder(orderId).get();
         assertThat(order.getStatus(), is(OrderStatus.PAID));
-        Coupon coupon = couponService.getCoupon(USER1_ID, USER1_COUPON2_VALUE_20_ID).get();
+        Coupon coupon = couponService.getCoupon(USER1_ID, USER1_COUPON_20_ID).get();
         assertThat(coupon.isUsed(), is(true));
     }
 
@@ -81,7 +81,7 @@ public class PayTest extends BaseTest {
 
         int quantity = 5;
         int orderId = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
-        payService.payOrder(orderId, USER1_COUPON2_VALUE_20_ID);
+        payService.payOrder(orderId, USER1_COUPON_20_ID);
 
         Order order = orderService.getOrder(orderId).get();
         assertThat(order.getStatus(), is(OrderStatus.PAID));
@@ -94,7 +94,30 @@ public class PayTest extends BaseTest {
 
         assertThat(balanceService.getBalance(USER1_ID).getAmount(), is(initAmount));
 
-        Coupon coupon = couponService.getCoupon(USER1_ID, USER1_COUPON2_VALUE_20_ID).get();
+        Coupon coupon = couponService.getCoupon(USER1_ID, USER1_COUPON_20_ID).get();
+        assertThat(coupon.isUsed(), is(true));
+    }
+
+    @Test
+    public void testCallback() throws CommerceException {
+        int initAmount = 10000;
+        assertThat(balanceService.getBalance(USER1_ID).getAmount(), is(initAmount));
+
+        int quantity = 5;
+        int orderId1 = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
+        int orderId2 = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
+        payService.payOrder(orderId2, USER1_COUPON_20_ID);
+
+        payService.callbackVariant(P2_VAR2_Q0_ID);
+        Order order1 = orderService.getOrder(orderId1).get();
+        Order order2 = orderService.getOrder(orderId2).get();
+        assertThat(order1.getStatus(), is(OrderStatus.CANCELLED));
+        assertThat(order1.getItems().get(0).getStatus(), is(OrderItemStatus.CANCELLED));
+        assertThat(order2.getStatus(), is(OrderStatus.PAID));
+        assertThat(order2.getItems().get(0).getStatus(), is(OrderItemStatus.REFUNDED));
+
+        assertThat(balanceService.getBalance(USER1_ID).getAmount(), is(initAmount));
+        Coupon coupon = couponService.getCoupon(USER1_ID, USER1_COUPON_20_ID).get();
         assertThat(coupon.isUsed(), is(true));
     }
 
