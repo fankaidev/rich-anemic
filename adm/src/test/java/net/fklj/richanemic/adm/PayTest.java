@@ -4,10 +4,10 @@ import net.fklj.richanemic.adm.data.Coupon;
 import net.fklj.richanemic.adm.data.Order;
 import net.fklj.richanemic.adm.data.OrderItem;
 import net.fklj.richanemic.adm.data.Payment;
-import net.fklj.richanemic.adm.service.BalanceService;
-import net.fklj.richanemic.adm.service.CouponService;
-import net.fklj.richanemic.adm.service.OrderService;
-import net.fklj.richanemic.adm.service.PayService;
+import net.fklj.richanemic.adm.service.AppService;
+import net.fklj.richanemic.adm.service.balance.BalanceServiceImpl;
+import net.fklj.richanemic.adm.service.coupon.CouponService;
+import net.fklj.richanemic.adm.service.order.OrderTxService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.OrderItemStatus;
 import net.fklj.richanemic.data.OrderStatus;
@@ -21,16 +21,16 @@ import static org.junit.Assert.assertThat;
 public class PayTest extends BaseTest {
 
     @Autowired
-    private PayService payService;
-
-    @Autowired
-    private BalanceService balanceService;
+    private BalanceServiceImpl balanceService;
 
     @Autowired
     private CouponService couponService;
 
     @Autowired
-    private OrderService orderService;
+    private OrderTxService orderService;
+
+    @Autowired
+    private AppService appService;
 
     @Test
     public void testPay() throws CommerceException {
@@ -39,12 +39,12 @@ public class PayTest extends BaseTest {
 
         int quantity = 5;
         int orderId = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
-        payService.payOrder(orderId, VOID_COUPON_ID);
+        appService.payOrder(orderId, VOID_COUPON_ID);
         int cashFee = PRODUCT_PRICE * 5;
         assertThat(balanceService.getBalance(USER1_ID).getAmount(), is(initAmount -
                 cashFee));
 
-        Payment payment = payService.getPaymentOfOrder(orderId).get();
+        Payment payment = orderService.getPaymentOfOrder(orderId).get();
         assertThat(payment.getCashFee(), is(cashFee));
         assertThat(payment.getOrderId(), is(orderId));
         assertThat(payment.getCouponId(), is(VOID_COUPON_ID));
@@ -62,7 +62,7 @@ public class PayTest extends BaseTest {
 
         int quantity = 5;
         int orderId = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
-        payService.payOrder(orderId, USER1_COUPON_20_ID);
+        appService.payOrder(orderId, USER1_COUPON_20_ID);
         final int couponFee = 20;
         final int cashFee = PRODUCT_PRICE * quantity - couponFee;
         assertThat(balanceService.getBalance(USER1_ID).getAmount(), is(initAmount - cashFee));
@@ -81,12 +81,12 @@ public class PayTest extends BaseTest {
 
         int quantity = 5;
         int orderId = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
-        payService.payOrder(orderId, USER1_COUPON_20_ID);
+        appService.payOrder(orderId, USER1_COUPON_20_ID);
 
         Order order = orderService.getOrder(orderId).get();
         assertThat(order.getStatus(), is(OrderStatus.PAID));
         OrderItem item = order.getItems().get(0);
-        payService.refundOrderItem(orderId, item.getId());
+        appService.refundOrderItem(orderId, item.getId());
 
         Order afterRefund = orderService.getOrder(orderId).get();
         assertThat(afterRefund.getStatus(), is(OrderStatus.PAID));
@@ -106,9 +106,9 @@ public class PayTest extends BaseTest {
         int quantity = 5;
         int orderId1 = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
         int orderId2 = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
-        payService.payOrder(orderId2, USER1_COUPON_20_ID);
+        appService.payOrder(orderId2, USER1_COUPON_20_ID);
 
-        payService.callbackVariant(P2_VAR2_Q0_ID);
+        appService.callbackVariant(P2_VAR2_Q0_ID);
         Order order1 = orderService.getOrder(orderId1).get();
         Order order2 = orderService.getOrder(orderId2).get();
         assertThat(order1.getStatus(), is(OrderStatus.CANCELLED));

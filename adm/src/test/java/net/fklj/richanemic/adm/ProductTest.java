@@ -2,7 +2,7 @@ package net.fklj.richanemic.adm;
 
 import net.fklj.richanemic.adm.data.Product;
 import net.fklj.richanemic.adm.data.Variant;
-import net.fklj.richanemic.adm.service.ProductAggregateService;
+import net.fklj.richanemic.adm.service.product.ProductTxService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidProductException;
 import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
@@ -25,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 public class ProductTest extends BaseTest {
 
     @Autowired
-    private ProductAggregateService productService;
+    private ProductTxService productService;
 
     @Test
     public void testCreateProduct() throws CommerceException {

@@ -1,7 +1,8 @@
-package net.fklj.richanemic.adm.service;
+package net.fklj.richanemic.adm.service.order;
 
 import net.fklj.richanemic.adm.data.Order;
 import net.fklj.richanemic.adm.data.OrderItem;
+import net.fklj.richanemic.adm.data.Payment;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,4 +20,7 @@ public interface OrderService {
     List<OrderItem> getOrderItemsByProductId(int productId);
 
     List<OrderItem> getOrderItemsByVariantId(int variantId);
+
+    Optional<Payment> getPaymentOfOrder(int orderId);
+
 }

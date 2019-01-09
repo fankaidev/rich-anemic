@@ -1,4 +1,4 @@
-package net.fklj.richanemic.adm.service;
+package net.fklj.richanemic.adm.service.product;
 
 import lombok.extern.slf4j.Slf4j;
 import net.fklj.richanemic.adm.data.Product;
@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 import static net.fklj.richanemic.data.Constants.PRODUCT_MAX_PRICE;
@@ -25,10 +26,32 @@ import static net.fklj.richanemic.data.Constants.PRODUCT_QUOTA_INFINITY;
 
 @Slf4j
 @Service
-public class ProductAggregateServiceImpl extends ProductServiceImpl implements ProductAggregateService {
+public class ProductServiceImpl implements ProductTxService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Override
+    public Optional<Product> getProduct(int productId) {
+        return productRepository.getProduct(productId);
+    }
+
+    @Override
+    public Optional<Variant> getVariant(int variantId) {
+        return productRepository.getVariant(variantId);
+    }
+
+    @Override
+    public List<Variant> getVariantsOfProduct(int productId) {
+        return productRepository.getVariantByProductId(productId);
+    }
+
+    @Override
+    public Map<Integer, Product> getProducts(Collection<Integer> productIds) {
+        return productRepository.getProducts(productIds);
+    }
+
+    /*************************** transaction ********************/
 
     @Override
     public int createProduct(int price, int quota) throws CommerceException {
@@ -132,8 +155,4 @@ public class ProductAggregateServiceImpl extends ProductServiceImpl implements P
         productRepository.increaseProductSoldCount(productId, -quantity);
     }
 
-    @Override
-    public Map<Integer, Product> getProducts(Collection<Integer> productIds) {
-        return productRepository.getProducts(productIds);
-    }
 }

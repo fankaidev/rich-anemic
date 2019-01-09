@@ -7,11 +7,14 @@ import net.fklj.richanemic.adm.data.Payment;
 import net.fklj.richanemic.adm.data.Product;
 import net.fklj.richanemic.adm.repository.OrderRepository;
 import net.fklj.richanemic.adm.repository.PaymentRepository;
+import net.fklj.richanemic.adm.service.balance.BalanceTxService;
+import net.fklj.richanemic.adm.service.coupon.CouponTxService;
+import net.fklj.richanemic.adm.service.order.OrderTxService;
+import net.fklj.richanemic.adm.service.product.ProductTxService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.CouponNotFoundException;
 import net.fklj.richanemic.data.CommerceException.CouponUserdException;
 import net.fklj.richanemic.data.CommerceException.OrderNotFoundException;
-import net.fklj.richanemic.data.OrderItemStatus;
 import net.fklj.richanemic.data.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,33 +22,50 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
 
 import static java.util.stream.Collectors.toList;
 import static net.fklj.richanemic.data.Constants.VOID_COUPON_ID;
 
 @Service
-public class PayService {
-
-    @Autowired
-    private BalanceService balanceService;
-
-    @Autowired
-    private CouponService couponService;
-
-    @Autowired
-    private OrderAggregateService orderService;
-
-    @Autowired
-    private ProductAggregateService productService;
-
-    @Autowired
-    private PaymentRepository paymentRepository;
+public class AppServiceImpl implements AppService {
 
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private OrderTxService orderService;
+
+    @Autowired
+    private ProductTxService productService;
+
+    @Autowired
+    private BalanceTxService balanceService;
+
+    @Autowired
+    private CouponTxService couponService;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void callbackVariant(int variantId) throws CommerceException {
+        List<OrderItem> items = orderRepository.getOrderItemsByVariantId(variantId);
+        for (OrderItem item : items) {
+            // TODO: lock
+            Order order = orderService.getOrder(item.getOrderId())
+                    .orElseThrow(OrderNotFoundException::new);
+            if (order.getStatus() == OrderStatus.PAID) {
+                refundOrderItem(order.getId(), item.getId());
+            } else {
+                cancelOrder(order.getId());
+            }
+        }
+        productService.inactivateVariant(variantId);
+    }
+
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void payOrder(int orderId, int couponId) throws CommerceException {
         Order order = orderService.getOrder(orderId)
@@ -67,21 +87,10 @@ public class PayService {
         final int cashFee = fee - couponFee;
         balanceService.use(userId, cashFee);
 
-        Payment payment = Payment.builder()
-                .id(new Random().nextInt())
-                .orderId(orderId)
-                .userId(userId)
-                .cashFee(cashFee)
-                .couponId(couponId)
-                .build();
-        paymentRepository.savePayment(payment);
-
-        orderRepository.updateOrderStatus(orderId, OrderStatus.PAID);
-        for (OrderItem item : order.getItems()) {
-            orderRepository.updateOrderItemStatus(item.getId(), OrderItemStatus.PAID);
-        }
+        orderService.pay(order, couponId, cashFee);
     }
 
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void refundOrderItem(int orderId, int orderItemId) throws CommerceException {
         Order order = orderService.getOrder(orderId)
@@ -94,8 +103,9 @@ public class PayService {
 
         // don't refund coupon
         balanceService.deposit(userId, payment.getCashFee());
-        orderRepository.updateOrderItemStatus(item.getId(), OrderItemStatus.REFUNDED);
+        orderService.refundItem(item);
     }
+
 
     private int getOrderFee(Order order) {
         List<Integer> productIds = order.getItems().stream().map(OrderItem::getProductId).collect(toList());
@@ -109,24 +119,30 @@ public class PayService {
         return item.getQuantity() * productMap.get(item.getProductId()).getPrice();
     }
 
-    public Optional<Payment> getPaymentOfOrder(int orderId) {
-        return paymentRepository.getPaymentOfOrder(orderId);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public void callbackVariant(int variantId) throws CommerceException {
-        List<OrderItem> items = orderRepository.getOrderItemsByVariantId(variantId);
-        for (OrderItem item : items) {
-            // TODO: lock
-            Order order = orderService.getOrder(item.getOrderId())
-                    .orElseThrow(OrderNotFoundException::new);
-            if (order.getStatus() == OrderStatus.PAID) {
-                refundOrderItem(order.getId(), item.getId());
-            } else {
-                orderService.cancelOrder(order.getId());
-            }
+    @Override
+    public void cancelOrder(int orderId) throws OrderNotFoundException {
+        Order order = orderRepository.getOrder(orderId)
+                .orElseThrow(OrderNotFoundException::new);
+        // TODO: check paid
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            return;
         }
-        productService.inactivateVariant(variantId);
+
+        orderService.cancel(order);
+
+        for (OrderItem item : order.getItems()) {
+            productService.releaseQuota(item.getProductId(), item.getVariantId(), item.getQuantity());
+        }
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int createOrder(int userId, List<OrderItem> items)
+            throws CommerceException {
+        int orderId = orderService.create(userId, items);
+        for (OrderItem item : items) {
+            productService.useQuota(item.getProductId(), item.getVariantId(), item.getQuantity());
+        }
+        return orderId;
+    }
 }

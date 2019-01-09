@@ -1,18 +1,19 @@
-package net.fklj.richanemic.adm.service;
+package net.fklj.richanemic.adm.service.order;
 
-import lombok.extern.slf4j.Slf4j;
 import net.fklj.richanemic.adm.data.Order;
 import net.fklj.richanemic.adm.data.OrderItem;
+import net.fklj.richanemic.adm.data.Payment;
 import net.fklj.richanemic.adm.data.Product;
 import net.fklj.richanemic.adm.data.Variant;
 import net.fklj.richanemic.adm.repository.OrderRepository;
+import net.fklj.richanemic.adm.repository.PaymentRepository;
+import net.fklj.richanemic.adm.service.product.ProductService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.CreateOrderException;
 import net.fklj.richanemic.data.CommerceException.DuplicateProductException;
 import net.fklj.richanemic.data.CommerceException.InactiveProductException;
 import net.fklj.richanemic.data.CommerceException.InactiveVariantException;
 import net.fklj.richanemic.data.CommerceException.InvalidQuantityException;
-import net.fklj.richanemic.data.CommerceException.OrderNotFoundException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
 import net.fklj.richanemic.data.CommerceException.VariantOutOfStockException;
@@ -22,25 +23,52 @@ import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.VariantStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
-@Slf4j
 @Service
-public class OrderAggregateServiceImpl extends OrderServiceImpl implements OrderAggregateService {
+public class OrderServiceImpl implements OrderTxService {
 
     @Autowired
     private OrderRepository orderRepository;
 
     @Autowired
-    private ProductAggregateService productService;
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private ProductService productService;
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int createOrder(int userId, List<OrderItem> items)
-            throws CommerceException {
+    public Optional<Order> getOrder(int orderId) {
+        return orderRepository.getOrder(orderId);
+    }
+
+    @Override
+    public Optional<OrderItem> getOrderItem(int orderItemId) {
+        return orderRepository.getOrderItem(orderItemId);
+    }
+
+    @Override
+    public Map<Integer, OrderItem> getOrderItemsByOrderItemIds(Collection<Integer> orderItemIds) {
+        return orderRepository.getOrderItemsByOrderItemIds(orderItemIds);
+    }
+
+    @Override
+    public List<OrderItem> getOrderItemsByProductId(int productId) {
+        return orderRepository.getOrderItemsByProductId(productId);
+    }
+
+    @Override
+    public List<OrderItem> getOrderItemsByVariantId(int variantId) {
+        return orderRepository.getOrderItemsByVariantId(variantId);
+    }
+
+    @Override
+    public int create(int userId, List<OrderItem> items) throws CommerceException {
         int orderId = new Random().nextInt();
 
         validateOrder(items);
@@ -60,19 +88,10 @@ public class OrderAggregateServiceImpl extends OrderServiceImpl implements Order
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void cancelOrder(int orderId) throws OrderNotFoundException {
-        Order order = orderRepository.getOrder(orderId)
-                .orElseThrow(OrderNotFoundException::new);
-        // TODO: check paid
-        if (order.getStatus() == OrderStatus.CANCELLED) {
-            return;
-        }
-
-        orderRepository.updateOrderStatus(orderId, OrderStatus.CANCELLED);
+    public void cancel(Order order) {
+        orderRepository.updateOrderStatus(order.getId(), OrderStatus.CANCELLED);
 
         for (OrderItem item : order.getItems()) {
-            productService.releaseQuota(item.getProductId(), item.getVariantId(), item.getQuantity());
             orderRepository.updateOrderItemStatus(item.getId(), OrderItemStatus.CANCELLED);
         }
     }
@@ -108,7 +127,33 @@ public class OrderAggregateServiceImpl extends OrderServiceImpl implements Order
             throw new VariantOutOfStockException();
         }
 
-        productService.useQuota(product.getId(), variant.getId(), item.getQuantity());
+    }
+
+    @Override
+    public void refundItem(OrderItem item) {
+        orderRepository.updateOrderItemStatus(item.getId(), OrderItemStatus.REFUNDED);
+    }
+
+    @Override
+    public Optional<Payment> getPaymentOfOrder(int orderId) {
+        return paymentRepository.getPaymentOfOrder(orderId);
+    }
+
+    @Override
+    public void pay(Order order, int couponId, int cashFee) {
+        Payment payment = Payment.builder()
+                .id(new Random().nextInt())
+                .orderId(order.getId())
+                .userId(order.getUserId())
+                .cashFee(cashFee)
+                .couponId(couponId)
+                .build();
+        paymentRepository.savePayment(payment);
+
+        orderRepository.updateOrderStatus(order.getId(), OrderStatus.PAID);
+        for (OrderItem item : order.getItems()) {
+            orderRepository.updateOrderItemStatus(item.getId(), OrderItemStatus.PAID);
+        }
     }
 
 }

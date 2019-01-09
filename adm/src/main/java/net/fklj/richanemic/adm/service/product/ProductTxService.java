@@ -1,9 +1,9 @@
-package net.fklj.richanemic.adm.service;
+package net.fklj.richanemic.adm.service.product;
 
 import net.fklj.richanemic.data.CommerceException;
 import org.springframework.transaction.annotation.Transactional;
 
-public interface ProductAggregateService extends ProductService {
+public interface ProductTxService extends ProductService {
 
     @Transactional(rollbackFor = Exception.class)
     int createProduct(int price, int quota) throws CommerceException;

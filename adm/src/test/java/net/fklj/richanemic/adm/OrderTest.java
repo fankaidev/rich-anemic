@@ -2,7 +2,9 @@ package net.fklj.richanemic.adm;
 
 import net.fklj.richanemic.adm.data.Order;
 import net.fklj.richanemic.adm.data.OrderItem;
-import net.fklj.richanemic.adm.service.OrderAggregateService;
+import net.fklj.richanemic.adm.service.AppService;
+import net.fklj.richanemic.adm.service.order.OrderTxService;
+import net.fklj.richanemic.adm.service.product.ProductService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.DuplicateProductException;
 import net.fklj.richanemic.data.CommerceException.InactiveProductException;
@@ -33,7 +35,13 @@ import static org.junit.Assert.assertTrue;
 public class OrderTest extends BaseTest {
 
     @Autowired
-    private OrderAggregateService orderService;
+    private OrderTxService orderService;
+
+    @Autowired
+    private AppService appService;
+
+    @Autowired
+    private ProductService productService;
 
     @Test
     public void testCreateOrder() throws CommerceException {
@@ -56,11 +64,12 @@ public class OrderTest extends BaseTest {
     public void testCancelOrder() throws CommerceException {
         int quantity = 1;
         int orderId = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
-        orderService.cancelOrder(orderId);
+        appService.cancelOrder(orderId);
         Order order = orderService.getOrder(orderId).orElseThrow(RuntimeException::new);
         assertThat(order.getStatus(), is(OrderStatus.CANCELLED));
 
-        orderService.cancelOrder(orderId); // allow double cancel
+        appService.cancelOrder(orderId); // allow double cancel
+        assertThat(productService.getProduct(PRODUCT2_Q0_ID).get().getSoldCount(), is(0));
     }
 
     @Test
@@ -85,7 +94,7 @@ public class OrderTest extends BaseTest {
     public void testCreateOrderWithMultiItems() throws CommerceException {
         OrderItem item1 = genItem(PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, 1);
         OrderItem item2 = genItem(PRODUCT3_Q9_ID, P3_VAR1_Q1_ID, 1);
-        int orderId = orderService.createOrder(USER1_ID, Arrays.asList(item1, item2));
+        int orderId = appService.createOrder(USER1_ID, Arrays.asList(item1, item2));
         Order order = orderService.getOrder(orderId).orElseThrow(RuntimeException::new);
         assertThat(order.getItems(), hasSize(2));
     }
@@ -130,7 +139,7 @@ public class OrderTest extends BaseTest {
     @Test
     public void testCreateOrderAfterCancel() throws CommerceException {
         int orderId = createOrder(USER1_ID, PRODUCT3_Q9_ID, P3_VAR1_Q1_ID, 1);
-        orderService.cancelOrder(orderId);
+        appService.cancelOrder(orderId);
         createOrder(USER1_ID, PRODUCT3_Q9_ID, P3_VAR1_Q1_ID, 1);
     }
 
@@ -143,7 +152,7 @@ public class OrderTest extends BaseTest {
     public void testCreateOrderWithDuplicates() throws CommerceException {
         OrderItem item1 = genItem(PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, 1);
         OrderItem item2 = genItem(PRODUCT2_Q0_ID, P2_VAR3_Q1_ID, 1);
-        orderService.createOrder(USER1_ID, Arrays.asList(item1, item2));
+        appService.createOrder(USER1_ID, Arrays.asList(item1, item2));
     }
 
 }

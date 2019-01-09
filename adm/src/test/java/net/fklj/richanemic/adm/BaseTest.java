@@ -6,13 +6,14 @@ import net.fklj.richanemic.adm.repository.CouponRepository;
 import net.fklj.richanemic.adm.repository.OrderRepository;
 import net.fklj.richanemic.adm.repository.PaymentRepository;
 import net.fklj.richanemic.adm.repository.ProductRepository;
-import net.fklj.richanemic.adm.service.BalanceService;
-import net.fklj.richanemic.adm.service.CouponService;
-import net.fklj.richanemic.adm.service.OrderAggregateService;
-import net.fklj.richanemic.adm.service.OrderAggregateServiceImpl;
-import net.fklj.richanemic.adm.service.PayService;
-import net.fklj.richanemic.adm.service.ProductAggregateService;
-import net.fklj.richanemic.adm.service.ProductAggregateServiceImpl;
+import net.fklj.richanemic.adm.service.AppService;
+import net.fklj.richanemic.adm.service.AppServiceImpl;
+import net.fklj.richanemic.adm.service.balance.BalanceServiceImpl;
+import net.fklj.richanemic.adm.service.coupon.CouponServiceImpl;
+import net.fklj.richanemic.adm.service.coupon.CouponTxService;
+import net.fklj.richanemic.adm.service.order.OrderServiceImpl;
+import net.fklj.richanemic.adm.service.product.ProductServiceImpl;
+import net.fklj.richanemic.adm.service.product.ProductTxService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.OrderItemStatus;
 import org.junit.Before;
@@ -32,22 +33,22 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @ContextConfiguration(classes = {
         TestDbConfiguration.class,
-        ProductAggregateServiceImpl.class, OrderAggregateServiceImpl.class,
+        ProductServiceImpl.class, OrderServiceImpl.class,
         ProductRepository.class, OrderRepository.class,
-        BalanceService.class, BalanceRepository.class,
-        CouponService.class, CouponRepository.class,
-        PayService.class, PaymentRepository.class
+        BalanceServiceImpl.class, BalanceRepository.class,
+        CouponServiceImpl.class, CouponRepository.class,
+        AppServiceImpl.class, PaymentRepository.class
 })
 public abstract class BaseTest {
 
     @Autowired
-    private ProductAggregateService productService;
+    private ProductTxService productService;
 
     @Autowired
-    private OrderAggregateService orderService;
+    private AppService appService;
 
     @Autowired
-    private CouponService couponService;
+    private CouponTxService couponService;
 
     protected int PRODUCT1_INACTIVE_ID;
     protected int P1_VAR1_INACTIVE_ID;
@@ -98,7 +99,7 @@ public abstract class BaseTest {
             throws CommerceException {
         OrderItem item = genItem(productId, variantId, quantity);
         List<OrderItem> items = singletonList(item);
-        return orderService.createOrder(userId, items);
+        return appService.createOrder(userId, items);
     }
 
     protected OrderItem genItem(int productId, int variantId, int quantity) {

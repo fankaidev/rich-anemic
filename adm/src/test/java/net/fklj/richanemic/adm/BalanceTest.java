@@ -1,6 +1,7 @@
 package net.fklj.richanemic.adm;
 
-import net.fklj.richanemic.adm.service.BalanceService;
+import net.fklj.richanemic.adm.service.balance.BalanceServiceImpl;
+import net.fklj.richanemic.adm.service.balance.BalanceTxService;
 import net.fklj.richanemic.data.CommerceException;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,7 @@ import static org.junit.Assert.assertThat;
 public class BalanceTest extends BaseTest {
 
     @Autowired
-    private BalanceService balanceService;
+    private BalanceTxService balanceService;
 
     @Test
     public void test() throws CommerceException {

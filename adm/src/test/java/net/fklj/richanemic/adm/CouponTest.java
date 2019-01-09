@@ -1,7 +1,7 @@
 package net.fklj.richanemic.adm;
 
 import net.fklj.richanemic.adm.data.Coupon;
-import net.fklj.richanemic.adm.service.CouponService;
+import net.fklj.richanemic.adm.service.coupon.CouponTxService;
 import net.fklj.richanemic.data.CommerceException;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 public class CouponTest extends BaseTest {
 
     @Autowired
-    private CouponService couponService;
+    private CouponTxService couponService;
 
     @Test
     public void test() throws CommerceException {

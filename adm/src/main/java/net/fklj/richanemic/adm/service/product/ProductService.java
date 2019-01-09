@@ -1,4 +1,4 @@
-package net.fklj.richanemic.adm.service;
+package net.fklj.richanemic.adm.service.product;
 
 import net.fklj.richanemic.adm.data.Product;
 import net.fklj.richanemic.adm.data.Variant;
