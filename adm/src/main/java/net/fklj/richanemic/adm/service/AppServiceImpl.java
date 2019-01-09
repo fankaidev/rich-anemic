@@ -48,7 +48,6 @@ public class AppServiceImpl implements AppService {
     private PaymentRepository paymentRepository;
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void callbackVariant(int variantId) throws CommerceException {
         List<OrderItem> items = orderRepository.getOrderItemsByVariantId(variantId);
         for (OrderItem item : items) {
@@ -66,7 +65,6 @@ public class AppServiceImpl implements AppService {
 
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void payOrder(int orderId, int couponId) throws CommerceException {
         Order order = orderService.getOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
@@ -91,7 +89,6 @@ public class AppServiceImpl implements AppService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void refundOrderItem(int orderId, int orderItemId) throws CommerceException {
         Order order = orderService.getOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
@@ -136,7 +133,6 @@ public class AppServiceImpl implements AppService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public int createOrder(int userId, List<OrderItem> items)
             throws CommerceException {
         int orderId = orderService.create(userId, items);

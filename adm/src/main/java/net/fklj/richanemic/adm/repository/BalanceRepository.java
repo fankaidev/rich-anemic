@@ -19,13 +19,18 @@ public class BalanceRepository {
     private static final RowMapper<Balance> ACCOUNT_MAPPER =
             new BeanPropertyRowMapper<>(Balance.class);
 
-    public void increaseAmount(int userId, int amount) {
+    public void changeAmount(int userId, int amount) {
         db.update("UPDATE balance SET amount = amount + :amount WHERE userId = :userId",
                 new MapSqlParameterSource("userId", userId).addValue("amount", amount));
     }
 
     public Balance get(int userId) {
         return db.queryForObject("SELECT * FROM balance WHERE userId = :userId",
+                Collections.singletonMap("userId", userId), ACCOUNT_MAPPER);
+    }
+
+    public Balance lock(int userId) {
+        return db.queryForObject("SELECT * FROM balance WHERE userId = :userId FOR UPDATE",
                 Collections.singletonMap("userId", userId), ACCOUNT_MAPPER);
     }
 }

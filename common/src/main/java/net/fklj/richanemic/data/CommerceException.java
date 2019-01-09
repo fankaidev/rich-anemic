@@ -33,4 +33,6 @@ public abstract class CommerceException extends Exception {
 
     public static class OrderPaidException extends CommerceException {}
 
+    public static class BalanceException extends CommerceException {}
+
 }
