@@ -21,6 +21,5 @@ public interface AppService {
     void refundOrderItem(int orderId, int orderItemId) throws CommerceException;
 
     @Transactional(rollbackFor = Exception.class)
-    int createOrder(int userId, List<OrderItem> items)
-            throws CommerceException;
+    int createOrder(int userId, List<OrderItem> items) throws CommerceException;
 }
