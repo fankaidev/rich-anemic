@@ -5,13 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.fklj.richanemic.data.CommerceException;
-import net.fklj.richanemic.data.CommerceException.CreateOrderException;
 import net.fklj.richanemic.data.CommerceException.InactiveProductException;
 import net.fklj.richanemic.data.CommerceException.InactiveVariantException;
 import net.fklj.richanemic.data.CommerceException.InvalidQuantityException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
-import net.fklj.richanemic.data.CommerceException.VariantOutOfStockException;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.VariantStatus;
 
@@ -48,7 +46,7 @@ public class OrderItem {
             throw new InactiveVariantException();
         }
         if (variant.isOutOfStock(quantity)) {
-            throw new VariantOutOfStockException();
+            throw new ProductOutOfStockException();
         }
 
         product.useQuota(quantity);

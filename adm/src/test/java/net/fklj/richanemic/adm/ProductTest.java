@@ -6,19 +6,23 @@ import net.fklj.richanemic.adm.service.product.ProductTxService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidProductException;
 import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
+import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantQuotaException;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.VariantStatus;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static net.fklj.richanemic.data.Constants.PRODUCT_MAX_PRICE;
 import static org.hamcrest.Matchers.emptyIterable;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -35,6 +39,21 @@ public class ProductTest extends BaseTest {
         assertTrue(product.isPresent());
         assertThat(product.get().getId(), is(productId));
         assertThat(productService.getVariantsOfProduct(productId), emptyIterable());
+    }
+
+    @Test
+    public void testGetInvalid() throws CommerceException {
+        Optional<Product> product = productService.getProduct(-1);
+        assertFalse(product.isPresent());
+
+        Optional<Variant> variant = productService.getVariant(-1);
+        assertFalse(variant.isPresent());
+
+        List<Variant> variants = productService.getVariantsOfProduct(-1);
+        assertThat(variants, emptyIterable());
+
+        Map<Integer, Product> productMap = productService.getProducts(Collections.singletonList(-1));
+        assertThat(productMap.size(), is (0));
     }
 
     @Test
@@ -59,8 +78,18 @@ public class ProductTest extends BaseTest {
         assertThat(productService.getVariantsOfProduct(PRODUCT1_INACTIVE_ID), hasSize(2));
     }
 
+    @Test(expected = InvalidProductException.class)
+    public void testCreateVariantForInvalidProduct() throws CommerceException {
+        productService.createVariant(-1, 1);
+    }
+
+    @Test(expected = InvalidVariantException.class)
+    public void testProductVariantMismatch() throws CommerceException {
+        productService.activateVariant(PRODUCT1_INACTIVE_ID, P2_VAR1_INACTIVE_ID);
+    }
+
     @Test
-    public void testStatus() {
+    public void testStatus() throws CommerceException {
         productService.activateProduct(PRODUCT1_INACTIVE_ID);
         assertThat(productService.getProduct(PRODUCT1_INACTIVE_ID).get().getStatus(),
                 is(ProductStatus.ACTIVE));
@@ -68,10 +97,10 @@ public class ProductTest extends BaseTest {
         assertThat(productService.getProduct(PRODUCT1_INACTIVE_ID).get().getStatus(),
                 is(ProductStatus.INACTIVE));
 
-        productService.activateVariant(P1_VAR1_INACTIVE_ID);
+        productService.activateVariant(PRODUCT1_INACTIVE_ID, P1_VAR1_INACTIVE_ID);
         assertThat(productService.getVariant(P1_VAR1_INACTIVE_ID).get().getStatus(),
                 is(VariantStatus.ACTIVE));
-        productService.inactivateVariant(P1_VAR1_INACTIVE_ID);
+        productService.inactivateVariant(PRODUCT1_INACTIVE_ID, P1_VAR1_INACTIVE_ID);
         assertThat(productService.getVariant(P1_VAR1_INACTIVE_ID).get().getStatus(),
                 is(VariantStatus.INACTIVE));
     }
@@ -115,6 +144,11 @@ public class ProductTest extends BaseTest {
     @Test(expected = VariantQuotaException.class)
     public void testCreateVariantExceedsQuota2() throws CommerceException {
         productService.createVariant(PRODUCT3_Q9_ID, 0);
+    }
+
+    @Test(expected = ProductOutOfStockException.class)
+    public void testInvalidUseQuota() throws CommerceException {
+        productService.useQuota(PRODUCT3_Q9_ID, P3_VAR1_Q1_ID, 2);
     }
 
 }

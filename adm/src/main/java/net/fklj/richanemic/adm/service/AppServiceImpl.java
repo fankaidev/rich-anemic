@@ -1,6 +1,5 @@
 package net.fklj.richanemic.adm.service;
 
-import net.fklj.richanemic.adm.data.Coupon;
 import net.fklj.richanemic.adm.data.Order;
 import net.fklj.richanemic.adm.data.OrderItem;
 import net.fklj.richanemic.adm.data.Payment;
@@ -12,8 +11,6 @@ import net.fklj.richanemic.adm.service.coupon.CouponTxService;
 import net.fklj.richanemic.adm.service.order.OrderTxService;
 import net.fklj.richanemic.adm.service.product.ProductTxService;
 import net.fklj.richanemic.data.CommerceException;
-import net.fklj.richanemic.data.CommerceException.CouponNotFoundException;
-import net.fklj.richanemic.data.CommerceException.CouponUsedException;
 import net.fklj.richanemic.data.CommerceException.OrderNotFoundException;
 import net.fklj.richanemic.data.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
-import static net.fklj.richanemic.data.Constants.VOID_COUPON_ID;
 
 @Service
 public class AppServiceImpl implements AppService {
@@ -47,7 +43,7 @@ public class AppServiceImpl implements AppService {
     private PaymentRepository paymentRepository;
 
     @Override
-    public void callbackVariant(int variantId) throws CommerceException {
+    public void callbackVariant(int productId, int variantId) throws CommerceException {
         List<OrderItem> items = orderRepository.getOrderItemsByVariantId(variantId);
         for (OrderItem item : items) {
             // TODO: lock
@@ -59,7 +55,7 @@ public class AppServiceImpl implements AppService {
                 cancelOrder(order.getId());
             }
         }
-        productService.inactivateVariant(variantId);
+        productService.inactivateVariant(productId, variantId);
     }
 
 
@@ -116,7 +112,11 @@ public class AppServiceImpl implements AppService {
         orderService.cancel(order);
 
         for (OrderItem item : order.getItems()) {
-            productService.releaseQuota(item.getProductId(), item.getVariantId(), item.getQuantity());
+            try {
+                productService.releaseQuota(item.getProductId(), item.getVariantId(), item.getQuantity());
+            } catch (CommerceException e) {
+                e.printStackTrace();
+            }
         }
     }
 

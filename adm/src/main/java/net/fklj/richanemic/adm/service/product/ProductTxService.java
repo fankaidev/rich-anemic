@@ -1,6 +1,8 @@
 package net.fklj.richanemic.adm.service.product;
 
 import net.fklj.richanemic.data.CommerceException;
+import net.fklj.richanemic.data.CommerceException.InvalidProductException;
+import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface ProductTxService extends ProductService {
@@ -15,21 +17,21 @@ public interface ProductTxService extends ProductService {
     int createProductWithDefaultVariant(int price, int quantity) throws CommerceException;
 
     @Transactional(rollbackFor = Exception.class)
-    void activateProduct(int productId);
+    void activateProduct(int productId) throws InvalidProductException;
 
     @Transactional(rollbackFor = Exception.class)
-    void inactivateProduct(int productId);
+    void inactivateProduct(int productId) throws InvalidProductException;
 
     @Transactional(rollbackFor = Exception.class)
-    void activateVariant(int variantId);
+    void activateVariant(int productId, int variantId) throws CommerceException;
 
     @Transactional(rollbackFor = Exception.class)
-    void inactivateVariant(int variantId);
+    void inactivateVariant(int productId, int variantId) throws CommerceException;
 
     @Transactional(rollbackFor = Exception.class)
     void useQuota(int productId, int variantId, int quantity) throws CommerceException;
 
     @Transactional(rollbackFor = Exception.class)
-    void releaseQuota(int productId, int variantId, int quantity);
+    void releaseQuota(int productId, int variantId, int quantity) throws CommerceException;
 
 }

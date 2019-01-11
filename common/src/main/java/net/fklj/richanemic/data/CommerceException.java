@@ -11,13 +11,11 @@ public abstract class CommerceException extends Exception {
 
     public static class DuplicateProductException extends CreateOrderException {}
 
-    public static class ProductOutOfStockException extends CreateOrderException {}
+    public static class ProductOutOfStockException extends CommerceException {}
 
-    public static class VariantOutOfStockException extends CreateOrderException {}
+    public static class InactiveProductException extends CommerceException {}
 
-    public static class InactiveProductException extends CreateOrderException {}
-
-    public static class InactiveVariantException extends CreateOrderException {}
+    public static class InactiveVariantException extends CommerceException {}
 
     public static class InvalidProductException extends CommerceException {}
 

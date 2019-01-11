@@ -108,7 +108,7 @@ public class PayTest extends BaseTest {
         int orderId2 = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
         appService.payOrder(orderId2, USER1_COUPON_20_ID);
 
-        appService.callbackVariant(P2_VAR2_Q0_ID);
+        appService.callbackVariant(PRODUCT2_Q0_ID, P2_VAR2_Q0_ID);
         Order order1 = orderService.getOrder(orderId1).get();
         Order order2 = orderService.getOrder(orderId2).get();
         assertThat(order1.getStatus(), is(OrderStatus.CANCELLED));

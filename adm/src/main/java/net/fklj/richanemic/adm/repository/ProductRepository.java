@@ -6,6 +6,7 @@ import net.fklj.richanemic.adm.data.Product;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.VariantStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
@@ -51,16 +52,34 @@ public class ProductRepository {
                 source);
     }
 
+    public Optional<Product> lockProduct(int productId) {
+        try {
+            Product result = db.queryForObject("SELECT * FROM product WHERE id = :productId FOR UPDATE",
+                    singletonMap("productId", productId), PRODUCT_MAPPER);
+            return Optional.ofNullable(result);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     public Optional<Product> getProduct(int productId) {
-        Product result = db.queryForObject("SELECT * FROM product WHERE id = :productId",
-                singletonMap("productId", productId), PRODUCT_MAPPER);
-        return Optional.ofNullable(result);
+        try {
+            Product result = db.queryForObject("SELECT * FROM product WHERE id = :productId",
+                    singletonMap("productId", productId), PRODUCT_MAPPER);
+            return Optional.ofNullable(result);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     public Optional<Variant> getVariant(int variantId) {
-        Variant result = db.queryForObject("SELECT * FROM variant WHERE id = :variantId",
+        try {
+            Variant result = db.queryForObject("SELECT * FROM variant WHERE id = :variantId",
                 singletonMap("variantId", variantId), VARIANT_MAPPER);
-        return Optional.ofNullable(result);
+            return Optional.ofNullable(result);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     public List<Variant> getVariantByProductId(int productId) {

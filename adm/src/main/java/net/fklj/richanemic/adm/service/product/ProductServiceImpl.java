@@ -1,5 +1,6 @@
 package net.fklj.richanemic.adm.service.product;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.fklj.richanemic.adm.data.Product;
 import net.fklj.richanemic.adm.data.Variant;
@@ -8,7 +9,6 @@ import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidProductException;
 import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
-import net.fklj.richanemic.data.CommerceException.VariantOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantQuotaException;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.VariantStatus;
@@ -53,6 +53,19 @@ public class ProductServiceImpl implements ProductTxService {
 
     /*************************** transaction ********************/
 
+    private Product lock(int productId) throws InvalidProductException {
+        return productRepository.lockProduct(productId).orElseThrow(InvalidProductException::new);
+    }
+
+    private Variant validateVariantOfProduct(int productId, int variantId)
+            throws InvalidVariantException {
+        Variant variant = productRepository.getVariant(variantId).orElseThrow(InvalidVariantException::new);
+        if (variant.getProductId() != productId) {
+            throw new InvalidVariantException();
+        }
+        return variant;
+    }
+
     @Override
     public int createProduct(int price, int quota) throws CommerceException {
         if (price <= 0 || price > PRODUCT_MAX_PRICE) {
@@ -76,6 +89,7 @@ public class ProductServiceImpl implements ProductTxService {
 
     @Override
     public int createVariant(int productId, int quota) throws CommerceException {
+        Product product = lock(productId);
         if (quota < 0) {
             log.error("create variant with invalid quota {}", quota);
             throw new InvalidVariantException();
@@ -88,22 +102,20 @@ public class ProductServiceImpl implements ProductTxService {
                 .status(VariantStatus.INACTIVE)
                 .build();
 
-        checkQuota(productId, quota);
+        checkQuota(product, quota);
 
         productRepository.saveVariant(variant);
         return variantId;
     }
 
-    private void checkQuota(int productId, int requiredQuota) throws CommerceException {
-        Product product = productRepository.getProduct(productId)
-                .orElseThrow(InvalidProductException::new);
+    private void checkQuota(@NonNull Product product, int requiredQuota) throws CommerceException {
         if (product.getQuota() == PRODUCT_QUOTA_INFINITY) {
             return;
         }
         if (requiredQuota == PRODUCT_QUOTA_INFINITY) {
             throw new VariantQuotaException();
         }
-        List<Variant> variants = productRepository.getVariantByProductId(productId);
+        List<Variant> variants = productRepository.getVariantByProductId(product.getId());
         int totalVariantQuota = variants.stream().map(Variant::getQuota).reduce(0, (a, b) -> a+b);
         if (totalVariantQuota + requiredQuota > product.getQuota()) {
             throw new VariantQuotaException();
@@ -119,38 +131,48 @@ public class ProductServiceImpl implements ProductTxService {
     }
 
     @Override
-    public void activateProduct(int productId) {
+    public void activateProduct(int productId) throws InvalidProductException {
+        lock(productId);
         productRepository.updateProductStatus(productId, ProductStatus.ACTIVE);
     }
 
     @Override
-    public void inactivateProduct(int productId) {
+    public void inactivateProduct(int productId) throws InvalidProductException {
+        lock(productId);
         productRepository.updateProductStatus(productId, ProductStatus.INACTIVE);
     }
 
 
     @Override
-    public void activateVariant(int variantId) {
+    public void activateVariant(int productId, int variantId) throws CommerceException {
+        lock(productId);
+        validateVariantOfProduct(productId, variantId);
         productRepository.updateVariantStatus(variantId, VariantStatus.ACTIVE);
     }
 
     @Override
-    public void inactivateVariant(int variantId) {
+    public void inactivateVariant(int productId, int variantId) throws CommerceException {
+        lock(productId);
+        validateVariantOfProduct(productId, variantId);
         productRepository.updateVariantStatus(variantId, VariantStatus.INACTIVE);
     }
 
     @Override
     public void useQuota(int productId, int variantId, int quantity) throws CommerceException {
+        lock(productId);
+        validateVariantOfProduct(productId, variantId);
         if (!productRepository.increaseVariantSoldCount(variantId, quantity)) {
             throw new ProductOutOfStockException();
         }
         if (!productRepository.increaseProductSoldCount(productId, quantity)) {
-            throw new VariantOutOfStockException();
+            throw new ProductOutOfStockException();
         }
     }
 
     @Override
-    public void releaseQuota(int productId, int variantId, int quantity) {
+    public void releaseQuota(int productId, int variantId, int quantity) throws CommerceException {
+        lock(productId);
+        validateVariantOfProduct(productId, variantId);
         productRepository.increaseVariantSoldCount(variantId, -quantity);
         productRepository.increaseProductSoldCount(productId, -quantity);
     }

@@ -16,7 +16,6 @@ import net.fklj.richanemic.data.CommerceException.InactiveVariantException;
 import net.fklj.richanemic.data.CommerceException.InvalidQuantityException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
-import net.fklj.richanemic.data.CommerceException.VariantOutOfStockException;
 import net.fklj.richanemic.data.OrderItemStatus;
 import net.fklj.richanemic.data.OrderStatus;
 import net.fklj.richanemic.data.ProductStatus;
@@ -124,7 +123,7 @@ public class OrderServiceImpl implements OrderTxService {
             throw new InactiveVariantException();
         }
         if (variant.isOutOfStock(item.getQuantity())) {
-            throw new VariantOutOfStockException();
+            throw new ProductOutOfStockException();
         }
 
     }

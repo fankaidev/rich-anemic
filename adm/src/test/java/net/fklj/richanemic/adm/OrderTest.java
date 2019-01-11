@@ -12,7 +12,6 @@ import net.fklj.richanemic.data.CommerceException.InactiveVariantException;
 import net.fklj.richanemic.data.CommerceException.InvalidQuantityException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
-import net.fklj.richanemic.data.CommerceException.VariantOutOfStockException;
 import net.fklj.richanemic.data.OrderStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -125,12 +124,12 @@ public class OrderTest extends BaseTest {
         createOrder(USER1_ID, PRODUCT3_Q9_ID, P3_VAR1_Q1_ID, 9);
     }
 
-    @Test(expected = VariantOutOfStockException.class)
+    @Test(expected = ProductOutOfStockException.class)
     public void testCreateOrderWithVariantOutOfStock() throws CommerceException {
         createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR3_Q1_ID, 2);
     }
 
-    @Test(expected = VariantOutOfStockException.class)
+    @Test(expected = ProductOutOfStockException.class)
     public void testCreateMultiOrderWithVariantOutOfStock() throws CommerceException {
         createOrder(USER1_ID, PRODUCT3_Q9_ID, P3_VAR1_Q1_ID, 1);
         createOrder(USER1_ID, PRODUCT3_Q9_ID, P3_VAR1_Q1_ID, 1);

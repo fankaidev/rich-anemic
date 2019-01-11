@@ -9,7 +9,7 @@ import java.util.List;
 public interface AppService {
 
     @Transactional(rollbackFor = Exception.class)
-    void callbackVariant(int variantId) throws CommerceException;
+    void callbackVariant(int productId, int variantId) throws CommerceException;
 
     @Transactional(rollbackFor = Exception.class)
     void payOrder(int orderId, int couponId) throws CommerceException;
