@@ -69,7 +69,7 @@ public class AppServiceImpl implements AppService {
         final int cashFee = fee - couponFee;
         balanceService.use(userId, cashFee);
 
-        orderService.pay(order, couponId, cashFee);
+        orderService.pay(orderId, couponId, cashFee);
     }
 
     @Override
@@ -82,9 +82,10 @@ public class AppServiceImpl implements AppService {
         Payment payment = paymentRepository.getPaymentOfOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
 
+        orderService.refundItem(orderId, item);
+
         // don't refund coupon
         balanceService.deposit(userId, payment.getCashFee());
-        orderService.refundItem(item);
     }
 
 
@@ -109,7 +110,7 @@ public class AppServiceImpl implements AppService {
             return;
         }
 
-        orderService.cancel(order);
+        orderService.cancel(orderId);
 
         for (OrderItem item : order.getItems()) {
             try {

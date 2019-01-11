@@ -14,6 +14,7 @@ import net.fklj.richanemic.data.CommerceException.DuplicateProductException;
 import net.fklj.richanemic.data.CommerceException.InactiveProductException;
 import net.fklj.richanemic.data.CommerceException.InactiveVariantException;
 import net.fklj.richanemic.data.CommerceException.InvalidQuantityException;
+import net.fklj.richanemic.data.CommerceException.OrderNotFoundException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
 import net.fklj.richanemic.data.OrderItemStatus;
@@ -66,6 +67,12 @@ public class OrderServiceImpl implements OrderTxService {
         return orderRepository.getOrderItemsByVariantId(variantId);
     }
 
+    /***************** transaction *******************/
+
+    private Order lock(int orderId) throws OrderNotFoundException {
+        return orderRepository.lockOrder(orderId).orElseThrow(OrderNotFoundException::new);
+    }
+
     @Override
     public int create(int userId, List<OrderItem> items) throws CommerceException {
         int orderId = new Random().nextInt();
@@ -87,13 +94,15 @@ public class OrderServiceImpl implements OrderTxService {
     }
 
     @Override
-    public void cancel(Order order) {
+    public void cancel(int orderId) throws OrderNotFoundException {
+        Order order = lock(orderId);
         orderRepository.updateOrderStatus(order.getId(), OrderStatus.CANCELLED);
 
         for (OrderItem item : order.getItems()) {
             orderRepository.updateOrderItemStatus(item.getId(), OrderItemStatus.CANCELLED);
         }
     }
+
 
     private void validateOrder(List<OrderItem> items) throws DuplicateProductException {
         // forbid same productId in items
@@ -129,7 +138,8 @@ public class OrderServiceImpl implements OrderTxService {
     }
 
     @Override
-    public void refundItem(OrderItem item) {
+    public void refundItem(int orderId, OrderItem item) throws OrderNotFoundException {
+        lock(orderId);
         orderRepository.updateOrderItemStatus(item.getId(), OrderItemStatus.REFUNDED);
     }
 
@@ -139,7 +149,8 @@ public class OrderServiceImpl implements OrderTxService {
     }
 
     @Override
-    public void pay(Order order, int couponId, int cashFee) {
+    public void pay(int orderId, int couponId, int cashFee) throws OrderNotFoundException {
+        Order order = lock(orderId);
         Payment payment = Payment.builder()
                 .id(new Random().nextInt())
                 .orderId(order.getId())

@@ -3,6 +3,7 @@ package net.fklj.richanemic.adm.service.order;
 import net.fklj.richanemic.adm.data.Order;
 import net.fklj.richanemic.adm.data.OrderItem;
 import net.fklj.richanemic.data.CommerceException;
+import net.fklj.richanemic.data.CommerceException.OrderNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -13,12 +14,12 @@ public interface OrderTxService extends OrderService {
     int create(int userId, List<OrderItem> items) throws CommerceException;
 
     @Transactional(rollbackFor = Exception.class)
-    void cancel(Order order);
+    void cancel(int orderId) throws OrderNotFoundException;
 
     @Transactional(rollbackFor = Exception.class)
-    void pay(Order order, int couponId, int cashFee);
+    void pay(int orderId, int couponId, int cashFee) throws OrderNotFoundException;
 
     @Transactional(rollbackFor = Exception.class)
-    void refundItem(OrderItem item);
+    void refundItem(int orderId, OrderItem item) throws OrderNotFoundException;
 
 }

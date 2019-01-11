@@ -64,6 +64,19 @@ public class OrderRepository {
         }
     }
 
+    public Optional<Order> lockOrder(int orderId) {
+        try {
+            Order order = db.queryForObject("SELECT * FROM `order` WHERE id = :id FOR UPDATE",
+                    singletonMap("id", orderId),
+                    ORDER_MAPPER);
+            List<OrderItem> items = getItemsOfOrder(orderId);
+            order.setItems(items);
+            return Optional.of(order);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     private List<OrderItem> getItemsOfOrder(int orderId) {
         return db.query("SELECT * FROM order_item WHERE orderId = :orderId",
                 singletonMap("orderId", orderId),
