@@ -1,8 +1,8 @@
 package net.fklj.richanemic.adm;
 
-import net.fklj.richanemic.adm.service.balance.BalanceServiceImpl;
 import net.fklj.richanemic.adm.service.balance.BalanceTxService;
 import net.fklj.richanemic.data.CommerceException;
+import net.fklj.richanemic.data.CommerceException.InvalidBalanceAmountException;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -24,6 +24,16 @@ public class BalanceTest extends BaseTest {
 
         balanceService.deposit(USER1_ID, 200);
         assertThat(balanceService.getBalance(USER1_ID).getAmount(), is(initAmount + 100));
+    }
+
+    @Test(expected = InvalidBalanceAmountException.class)
+    public void testDepositInvalid() throws InvalidBalanceAmountException {
+        balanceService.deposit(USER1_ID, -200);
+    }
+
+    @Test(expected = InvalidBalanceAmountException.class)
+    public void testUseInvalid() throws CommerceException {
+        balanceService.use(USER1_ID, -200);
     }
 
 }
