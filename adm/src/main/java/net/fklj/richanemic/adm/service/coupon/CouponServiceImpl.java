@@ -2,12 +2,17 @@ package net.fklj.richanemic.adm.service.coupon;
 
 import net.fklj.richanemic.adm.data.Coupon;
 import net.fklj.richanemic.adm.repository.CouponRepository;
+import net.fklj.richanemic.data.CommerceException.CouponNotFoundException;
+import net.fklj.richanemic.data.CommerceException.CouponUsedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+
+import static net.fklj.richanemic.data.Constants.VOID_COUPON_ID;
 
 @Service
 public class CouponServiceImpl implements CouponTxService {
@@ -16,8 +21,19 @@ public class CouponServiceImpl implements CouponTxService {
     private CouponRepository couponRepository;
 
     @Override
-    public void useCoupon(int couponId) {
+    public int useCoupon(int couponId) throws CouponNotFoundException, CouponUsedException {
+        if (couponId == VOID_COUPON_ID) {
+            // don't use coupon, simply return couponValue of 0
+            return 0;
+        }
+
+        Coupon coupon = couponRepository.lockCoupon(couponId)
+                .orElseThrow(CouponNotFoundException::new);
+        if (coupon.isUsed()) {
+            throw new CouponUsedException();
+        }
         couponRepository.updateCouponUsed(couponId);
+        return coupon.getValue();
     }
 
     @Override

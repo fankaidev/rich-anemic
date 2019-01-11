@@ -29,7 +29,7 @@ public abstract class CommerceException extends Exception {
 
     public static class CouponNotFoundException extends CommerceException {}
 
-    public static class CouponUserdException extends CommerceException {}
+    public static class CouponUsedException extends CommerceException {}
 
     public static class OrderPaidException extends CommerceException {}
 

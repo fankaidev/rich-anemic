@@ -13,12 +13,11 @@ import net.fklj.richanemic.adm.service.order.OrderTxService;
 import net.fklj.richanemic.adm.service.product.ProductTxService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.CouponNotFoundException;
-import net.fklj.richanemic.data.CommerceException.CouponUserdException;
+import net.fklj.richanemic.data.CommerceException.CouponUsedException;
 import net.fklj.richanemic.data.CommerceException.OrderNotFoundException;
 import net.fklj.richanemic.data.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -70,18 +69,7 @@ public class AppServiceImpl implements AppService {
                 .orElseThrow(OrderNotFoundException::new);
         final int userId = order.getUserId();
         final int fee = getOrderFee(order);
-        final int couponFee;
-        if (couponId != VOID_COUPON_ID) {
-            Coupon coupon = couponService.getCoupon(userId, couponId)
-                    .orElseThrow(CouponNotFoundException::new);
-            if (coupon.isUsed()) {
-                throw new CouponUserdException();
-            }
-            couponFee = Math.min(coupon.getValue(), fee);
-            couponService.useCoupon(couponId);
-        } else {
-            couponFee = 0;
-        }
+        final int couponFee = couponService.useCoupon(couponId);
         final int cashFee = fee - couponFee;
         balanceService.use(userId, cashFee);
 
