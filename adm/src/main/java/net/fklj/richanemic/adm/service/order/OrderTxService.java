@@ -14,7 +14,10 @@ public interface OrderTxService extends OrderService {
     int create(int userId, List<OrderItem> items) throws CommerceException;
 
     @Transactional(rollbackFor = Exception.class)
-    void cancel(int orderId) throws OrderNotFoundException;
+    boolean cancel(int orderId) throws OrderNotFoundException;
+
+    @Transactional(rollbackFor = Exception.class)
+    void cancelWithEvent(int orderId) throws OrderNotFoundException;
 
     @Transactional(rollbackFor = Exception.class)
     void pay(int orderId, int couponId, int cashFee) throws OrderNotFoundException;

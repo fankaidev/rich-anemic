@@ -1,5 +1,6 @@
 package net.fklj.richanemic.adm.service;
 
+import lombok.extern.slf4j.Slf4j;
 import net.fklj.richanemic.adm.data.Order;
 import net.fklj.richanemic.adm.data.OrderItem;
 import net.fklj.richanemic.adm.data.Payment;
@@ -21,6 +22,7 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
+@Slf4j
 @Service
 public class AppServiceImpl implements AppService {
 
@@ -102,22 +104,14 @@ public class AppServiceImpl implements AppService {
     }
 
     @Override
-    public void cancelOrder(int orderId) throws OrderNotFoundException {
-        Order order = orderRepository.getOrder(orderId)
-                .orElseThrow(OrderNotFoundException::new);
-        // TODO: check paid
-        if (order.getStatus() == OrderStatus.CANCELLED) {
+    public void cancelOrder(int orderId) throws CommerceException {
+        if (!orderService.cancel(orderId)) {
             return;
         }
 
-        orderService.cancel(orderId);
-
+        Order order = orderRepository.getOrder(orderId).orElseThrow(OrderNotFoundException::new);
         for (OrderItem item : order.getItems()) {
-            try {
-                productService.releaseQuota(item.getProductId(), item.getVariantId(), item.getQuantity());
-            } catch (CommerceException e) {
-                e.printStackTrace();
-            }
+            productService.releaseQuota(item.getProductId(), item.getVariantId(), item.getQuantity());
         }
     }
 
@@ -130,4 +124,5 @@ public class AppServiceImpl implements AppService {
         }
         return orderId;
     }
+
 }

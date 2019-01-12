@@ -1,8 +1,10 @@
 package net.fklj.richanemic.adm.service.product;
 
+import net.fklj.richanemic.adm.event.OrderCancelledEvent;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidProductException;
 import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
+import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface ProductTxService extends ProductService {
@@ -34,4 +36,7 @@ public interface ProductTxService extends ProductService {
     @Transactional(rollbackFor = Exception.class)
     void releaseQuota(int productId, int variantId, int quantity) throws CommerceException;
 
+    @EventListener
+    @Transactional(rollbackFor = Exception.class)
+    void onOrderCancelled(OrderCancelledEvent event) throws CommerceException;
 }

@@ -2,8 +2,10 @@ package net.fklj.richanemic.adm.service.product;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.fklj.richanemic.adm.data.OrderItem;
 import net.fklj.richanemic.adm.data.Product;
 import net.fklj.richanemic.adm.data.Variant;
+import net.fklj.richanemic.adm.event.OrderCancelledEvent;
 import net.fklj.richanemic.adm.repository.ProductRepository;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidProductException;
@@ -13,6 +15,7 @@ import net.fklj.richanemic.data.CommerceException.VariantQuotaException;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.VariantStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -54,7 +57,16 @@ public class ProductServiceImpl implements ProductTxService {
     /*************************** transaction ********************/
 
     private Product lock(int productId) throws InvalidProductException {
-        return productRepository.lockProduct(productId).orElseThrow(InvalidProductException::new);
+        Product product = productRepository.lockProduct(productId).orElseThrow(InvalidProductException::new);
+
+        // mock delay
+        try {
+            Thread.sleep(20);
+        } catch (InterruptedException e) {
+            // do nothing
+        }
+
+        return product;
     }
 
     private Variant validateVariantOfProduct(int productId, int variantId)
@@ -161,10 +173,10 @@ public class ProductServiceImpl implements ProductTxService {
     public void useQuota(int productId, int variantId, int quantity) throws CommerceException {
         lock(productId);
         validateVariantOfProduct(productId, variantId);
-        if (!productRepository.increaseVariantSoldCount(variantId, quantity)) {
+        if (!productRepository.increaseProductSoldCount(productId, quantity)) {
             throw new ProductOutOfStockException();
         }
-        if (!productRepository.increaseProductSoldCount(productId, quantity)) {
+        if (!productRepository.increaseVariantSoldCount(variantId, quantity)) {
             throw new ProductOutOfStockException();
         }
     }
@@ -173,8 +185,19 @@ public class ProductServiceImpl implements ProductTxService {
     public void releaseQuota(int productId, int variantId, int quantity) throws CommerceException {
         lock(productId);
         validateVariantOfProduct(productId, variantId);
-        productRepository.increaseVariantSoldCount(variantId, -quantity);
         productRepository.increaseProductSoldCount(productId, -quantity);
+        productRepository.increaseVariantSoldCount(variantId, -quantity);
+    }
+
+    // TODO: idempotent
+    @Override
+    @EventListener
+    public void onOrderCancelled(OrderCancelledEvent event) throws CommerceException {
+        log.info("on order cancelled {}", event.getOrder().getId());
+        for (OrderItem item : event.getOrder().getItems()) {
+            productRepository.increaseProductSoldCount(item.getProductId(), -item.getQuantity());
+            productRepository.increaseVariantSoldCount(item.getVariantId(), -item.getQuantity());
+        }
     }
 
 }

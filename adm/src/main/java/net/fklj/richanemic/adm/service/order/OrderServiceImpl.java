@@ -1,10 +1,12 @@
 package net.fklj.richanemic.adm.service.order;
 
+import lombok.extern.slf4j.Slf4j;
 import net.fklj.richanemic.adm.data.Order;
 import net.fklj.richanemic.adm.data.OrderItem;
 import net.fklj.richanemic.adm.data.Payment;
 import net.fklj.richanemic.adm.data.Product;
 import net.fklj.richanemic.adm.data.Variant;
+import net.fklj.richanemic.adm.event.OrderCancelledEvent;
 import net.fklj.richanemic.adm.repository.OrderRepository;
 import net.fklj.richanemic.adm.repository.PaymentRepository;
 import net.fklj.richanemic.adm.service.product.ProductService;
@@ -22,6 +24,7 @@ import net.fklj.richanemic.data.OrderStatus;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.VariantStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -30,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
+@Slf4j
 @Service
 public class OrderServiceImpl implements OrderTxService {
 
@@ -41,6 +45,9 @@ public class OrderServiceImpl implements OrderTxService {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @Override
     public Optional<Order> getOrder(int orderId) {
@@ -94,15 +101,26 @@ public class OrderServiceImpl implements OrderTxService {
     }
 
     @Override
-    public void cancel(int orderId) throws OrderNotFoundException {
+    public boolean cancel(int orderId) throws OrderNotFoundException {
         Order order = lock(orderId);
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            return false;
+        }
         orderRepository.updateOrderStatus(order.getId(), OrderStatus.CANCELLED);
 
         for (OrderItem item : order.getItems()) {
             orderRepository.updateOrderItemStatus(item.getId(), OrderItemStatus.CANCELLED);
         }
+
+        return true;
     }
 
+    @Override
+    public void cancelWithEvent(int orderId) throws OrderNotFoundException {
+        cancel(orderId);
+        Order cancelled = getOrder(orderId).get();
+        eventPublisher.publishEvent(new OrderCancelledEvent(this, cancelled));
+    }
 
     private void validateOrder(List<OrderItem> items) throws DuplicateProductException {
         // forbid same productId in items
