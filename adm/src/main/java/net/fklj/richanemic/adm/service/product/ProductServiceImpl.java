@@ -8,9 +8,13 @@ import net.fklj.richanemic.adm.data.Variant;
 import net.fklj.richanemic.adm.event.OrderCancelledEvent;
 import net.fklj.richanemic.adm.repository.ProductRepository;
 import net.fklj.richanemic.data.CommerceException;
+import net.fklj.richanemic.data.CommerceException.CreateOrderException;
+import net.fklj.richanemic.data.CommerceException.InactiveProductException;
+import net.fklj.richanemic.data.CommerceException.InactiveVariantException;
 import net.fklj.richanemic.data.CommerceException.InvalidProductException;
 import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
+import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
 import net.fklj.richanemic.data.CommerceException.VariantQuotaException;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.VariantStatus;
@@ -69,11 +73,10 @@ public class ProductServiceImpl implements ProductTxService {
         return product;
     }
 
-    private Variant validateVariantOfProduct(int productId, int variantId)
-            throws InvalidVariantException {
+    private Variant validateVariantOfProduct(int productId, int variantId) throws CommerceException {
         Variant variant = productRepository.getVariant(variantId).orElseThrow(InvalidVariantException::new);
         if (variant.getProductId() != productId) {
-            throw new InvalidVariantException();
+            throw new VariantMismatchException();
         }
         return variant;
     }
@@ -171,14 +174,24 @@ public class ProductServiceImpl implements ProductTxService {
 
     @Override
     public void useQuota(int productId, int variantId, int quantity) throws CommerceException {
-        lock(productId);
-        validateVariantOfProduct(productId, variantId);
-        if (!productRepository.increaseProductSoldCount(productId, quantity)) {
+        Product product = lock(productId);
+        Variant variant = validateVariantOfProduct(productId, variantId);
+
+        if (product.getStatus() == ProductStatus.INACTIVE) {
+            throw new InactiveProductException();
+        }
+        if (product.isOutOfStock(quantity)) {
             throw new ProductOutOfStockException();
         }
-        if (!productRepository.increaseVariantSoldCount(variantId, quantity)) {
+        if (variant.getStatus() == VariantStatus.INACTIVE) {
+            throw new InactiveVariantException();
+        }
+        if (variant.isOutOfStock(quantity)) {
             throw new ProductOutOfStockException();
         }
+
+        productRepository.increaseProductSoldCount(productId, quantity);
+        productRepository.increaseVariantSoldCount(variantId, quantity);
     }
 
     @Override

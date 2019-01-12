@@ -7,6 +7,7 @@ import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidProductException;
 import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
+import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
 import net.fklj.richanemic.data.CommerceException.VariantQuotaException;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.VariantStatus;
@@ -83,7 +84,7 @@ public class ProductTest extends BaseTest {
         productService.createVariant(-1, 1);
     }
 
-    @Test(expected = InvalidVariantException.class)
+    @Test(expected = VariantMismatchException.class)
     public void testProductVariantMismatch() throws CommerceException {
         productService.activateVariant(PRODUCT1_INACTIVE_ID, P2_VAR1_INACTIVE_ID);
     }
