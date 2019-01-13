@@ -1,4 +1,4 @@
-package net.fklj.richanemic.rdm;
+package net.fklj.richanemic;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,9 +18,8 @@ public class TestDbConfiguration {
     @Primary
     public DataSource dataSource() {
         EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-        return builder.setType(EmbeddedDatabaseType.H2)
-                .addScript("schema.sql")
-                .build();
+        builder.addScript("schema.sql");
+        return builder.setType(EmbeddedDatabaseType.H2).build();
     }
 
     @Bean

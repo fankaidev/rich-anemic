@@ -1,4 +1,4 @@
-package net.fklj.richanemic.rdm;
+package net.fklj.richanemic;
 
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.DuplicateProductException;
@@ -7,10 +7,12 @@ import net.fklj.richanemic.data.CommerceException.InactiveVariantException;
 import net.fklj.richanemic.data.CommerceException.InvalidQuantityException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
+import net.fklj.richanemic.data.Order;
+import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.OrderStatus;
-import net.fklj.richanemic.rdm.entity.Order;
-import net.fklj.richanemic.rdm.entity.OrderItem;
-import net.fklj.richanemic.rdm.service.OrderAggregateService;
+import net.fklj.richanemic.service.AppService;
+import net.fklj.richanemic.service.order.OrderTxService;
+import net.fklj.richanemic.service.product.ProductService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +34,13 @@ import static org.junit.Assert.assertTrue;
 public class OrderTest extends BaseTest {
 
     @Autowired
-    private OrderAggregateService orderService;
+    private OrderTxService orderService;
+
+    @Autowired
+    private AppService appService;
+
+    @Autowired
+    private ProductService productService;
 
     @Test
     public void testCreateOrder() throws CommerceException {
@@ -55,11 +63,12 @@ public class OrderTest extends BaseTest {
     public void testCancelOrder() throws CommerceException {
         int quantity = 1;
         int orderId = createOrder(USER1_ID, PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, quantity);
-        orderService.cancelOrder(orderId);
+        appService.cancelOrder(orderId);
         Order order = orderService.getOrder(orderId).orElseThrow(RuntimeException::new);
         assertThat(order.getStatus(), is(OrderStatus.CANCELLED));
 
-        orderService.cancelOrder(orderId); // allow double cancel
+        appService.cancelOrder(orderId); // allow double cancel
+        assertThat(productService.getProduct(PRODUCT2_Q0_ID).get().getSoldCount(), is(0));
     }
 
     @Test
@@ -71,6 +80,7 @@ public class OrderTest extends BaseTest {
         assertThat(productItems, hasSize(3));
         List<OrderItem> variantItems = orderService.getOrderItemsByVariantId(P2_VAR2_Q0_ID);
         assertThat(variantItems, hasSize(2));
+        assertThat(orderService.getOrderItemsByVariantId(P1_VAR1_INACTIVE_ID), hasSize(0));
         int itemId = variantItems.get(0).getId();
         Optional<OrderItem> item = orderService.getOrderItem(itemId);
         assertTrue(item.isPresent());
@@ -83,7 +93,7 @@ public class OrderTest extends BaseTest {
     public void testCreateOrderWithMultiItems() throws CommerceException {
         OrderItem item1 = genItem(PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, 1);
         OrderItem item2 = genItem(PRODUCT3_Q9_ID, P3_VAR1_Q1_ID, 1);
-        int orderId = orderService.createOrder(USER1_ID, Arrays.asList(item1, item2));
+        int orderId = appService.createOrder(USER1_ID, Arrays.asList(item1, item2));
         Order order = orderService.getOrder(orderId).orElseThrow(RuntimeException::new);
         assertThat(order.getItems(), hasSize(2));
     }
@@ -128,7 +138,7 @@ public class OrderTest extends BaseTest {
     @Test
     public void testCreateOrderAfterCancel() throws CommerceException {
         int orderId = createOrder(USER1_ID, PRODUCT3_Q9_ID, P3_VAR1_Q1_ID, 1);
-        orderService.cancelOrder(orderId);
+        appService.cancelOrder(orderId);
         createOrder(USER1_ID, PRODUCT3_Q9_ID, P3_VAR1_Q1_ID, 1);
     }
 
@@ -141,7 +151,7 @@ public class OrderTest extends BaseTest {
     public void testCreateOrderWithDuplicates() throws CommerceException {
         OrderItem item1 = genItem(PRODUCT2_Q0_ID, P2_VAR2_Q0_ID, 1);
         OrderItem item2 = genItem(PRODUCT2_Q0_ID, P2_VAR3_Q1_ID, 1);
-        orderService.createOrder(USER1_ID, Arrays.asList(item1, item2));
+        appService.createOrder(USER1_ID, Arrays.asList(item1, item2));
     }
 
 }

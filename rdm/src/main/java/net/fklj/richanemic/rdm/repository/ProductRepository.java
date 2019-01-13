@@ -1,11 +1,12 @@
 package net.fklj.richanemic.rdm.repository;
 
 import com.google.common.collect.ImmutableMap;
-import net.fklj.richanemic.rdm.entity.Product;
-import net.fklj.richanemic.rdm.entity.Variant;
+import net.fklj.richanemic.data.Product;
 import net.fklj.richanemic.data.ProductStatus;
+import net.fklj.richanemic.data.Variant;
 import net.fklj.richanemic.data.VariantStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
@@ -13,8 +14,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 
@@ -35,32 +40,46 @@ public class ProductRepository {
         BeanPropertySqlParameterSource source = new BeanPropertySqlParameterSource(product);
         source.registerSqlType("status", Types.VARCHAR);
         db.update("INSERT INTO product (id, quota, price, soldCount, status) " +
-                "VALUES (:id, :quota, :price, :soldCount, :status) " +
-                "ON DUPLICATE KEY UPDATE quota = :quota, price = :price, " +
-                "soldCount = :soldCount, status = :status", source);
+                        "VALUES (:id, :quota, :price, :soldCount, :status)",
+                source);
     }
 
     public void saveVariant(Variant variant) {
         BeanPropertySqlParameterSource source = new BeanPropertySqlParameterSource(variant);
         source.registerSqlType("status", Types.VARCHAR);
         db.update("INSERT INTO variant (id, productId, quota, soldCount, status) " +
-                "VALUES (:id, :productId, :quota, :soldCount, :status) " +
-                "ON DUPLICATE KEY UPDATE quota = :quota, productId = :productId, " +
-                "soldCount = :soldCount, status = :status ", source);
+                        "VALUES (:id, :productId, :quota, :soldCount, :status)",
+                source);
+    }
+
+    public Optional<Product> lockProduct(int productId) {
+        try {
+            Product result = db.queryForObject("SELECT * FROM product WHERE id = :productId FOR UPDATE",
+                    singletonMap("productId", productId), PRODUCT_MAPPER);
+            return Optional.ofNullable(result);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     public Optional<Product> getProduct(int productId) {
-        Product result = db.queryForObject("SELECT * FROM product WHERE id = :productId",
-                singletonMap("productId", productId), PRODUCT_MAPPER);
-        result.setProductRepository(this);
-        return Optional.ofNullable(result);
+        try {
+            Product result = db.queryForObject("SELECT * FROM product WHERE id = :productId",
+                    singletonMap("productId", productId), PRODUCT_MAPPER);
+            return Optional.ofNullable(result);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     public Optional<Variant> getVariant(int variantId) {
-        Variant result = db.queryForObject("SELECT * FROM variant WHERE id = :variantId",
+        try {
+            Variant result = db.queryForObject("SELECT * FROM variant WHERE id = :variantId",
                 singletonMap("variantId", variantId), VARIANT_MAPPER);
-        result.setProductRepository(this);
-        return Optional.ofNullable(result);
+            return Optional.ofNullable(result);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     public List<Variant> getVariantByProductId(int productId) {
@@ -88,5 +107,12 @@ public class ProductRepository {
         return db.update("UPDATE product SET soldCount = soldCount + :quantity " +
                         "WHERE id = :id AND (quota = 0 OR quota >= soldCount + :quantity)",
                 ImmutableMap.of("id", productId, "quantity", quantity)) > 0;
+    }
+
+    public Map<Integer, Product> getProducts(Collection<Integer> productIds) {
+        return db.query("SELECT * FROM product WHERE id in (:ids)",
+                singletonMap("ids", productIds), PRODUCT_MAPPER)
+                .stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
     }
 }
