@@ -1,6 +1,7 @@
 package net.fklj.richanemic.rdm.service.balance;
 
 import lombok.extern.slf4j.Slf4j;
+import net.fklj.richanemic.rdm.entity.BalanceEntity;
 import net.fklj.richanemic.rdm.repository.BalanceRepository;
 import net.fklj.richanemic.data.Balance;
 import net.fklj.richanemic.data.CommerceException;
@@ -19,11 +20,8 @@ public class BalanceServiceImpl implements BalanceTxService {
 
     @Override
     public void deposit(int userId, int amount) throws InvalidBalanceAmountException {
-        if (amount <= 0) {
-            throw new InvalidBalanceAmountException();
-        }
-        balanceRepository.lock(userId);
-        balanceRepository.changeAmount(userId, amount);
+        BalanceEntity balance = balanceRepository.lock(userId);
+        balance.deposit(amount);
     }
 
     @Override
@@ -33,15 +31,7 @@ public class BalanceServiceImpl implements BalanceTxService {
 
     @Override
     public void use(int userId, int amount) throws CommerceException {
-        if (amount <= 0) {
-            throw new InvalidBalanceAmountException();
-        }
-        Balance balance = balanceRepository.lock(userId);
-        log.info("use balance, userId={}, amount={}, balance={}", userId, amount, balance);
-        if (balance.getAmount() < amount) {
-            throw new InsufficientBalanceException();
-        }
-        balanceRepository.changeAmount(userId, -amount);
-        log.info("use balance done");
+        BalanceEntity balance = balanceRepository.lock(userId);
+        balance.use(amount);
     }
 }

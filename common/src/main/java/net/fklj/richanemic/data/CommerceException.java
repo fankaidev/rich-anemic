@@ -29,6 +29,8 @@ public abstract class CommerceException extends Exception {
 
     public static class CouponUsedException extends CommerceException {}
 
+    public static class InvalidCouponException extends CommerceException {}
+
     public static class OrderPaidException extends CommerceException {}
 
     public static class InsufficientBalanceException extends CommerceException {}

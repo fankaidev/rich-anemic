@@ -2,6 +2,7 @@ package net.fklj.richanemic.service.coupon;
 
 import net.fklj.richanemic.data.CommerceException.CouponNotFoundException;
 import net.fklj.richanemic.data.CommerceException.CouponUsedException;
+import net.fklj.richanemic.data.CommerceException.InvalidCouponException;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface CouponTxService extends CouponService {
@@ -13,6 +14,6 @@ public interface CouponTxService extends CouponService {
     int useCoupon(int couponId) throws CouponNotFoundException, CouponUsedException;
 
     @Transactional(rollbackFor = Exception.class)
-    int grantCoupon(int userId, int value);
+    int grantCoupon(int userId, int value) throws InvalidCouponException;
 
 }

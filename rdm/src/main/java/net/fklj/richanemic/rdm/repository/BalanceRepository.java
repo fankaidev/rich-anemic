@@ -1,6 +1,7 @@
 package net.fklj.richanemic.rdm.repository;
 
 import net.fklj.richanemic.data.Balance;
+import net.fklj.richanemic.rdm.entity.BalanceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -16,11 +17,11 @@ public class BalanceRepository {
     @Autowired
     private NamedParameterJdbcOperations db;
 
-    private static final RowMapper<Balance> ACCOUNT_MAPPER =
-            new BeanPropertyRowMapper<>(Balance.class);
+    private static final RowMapper<BalanceEntity> ACCOUNT_MAPPER =
+            new BeanPropertyRowMapper<>(BalanceEntity.class);
 
-    public void changeAmount(int userId, int amount) {
-        db.update("UPDATE balance SET amount = amount + :amount WHERE userId = :userId",
+    public void save(int userId, int amount) {
+        db.update("UPDATE balance SET amount = :amount WHERE userId = :userId",
                 new MapSqlParameterSource("userId", userId).addValue("amount", amount));
     }
 
@@ -29,8 +30,10 @@ public class BalanceRepository {
                 Collections.singletonMap("userId", userId), ACCOUNT_MAPPER);
     }
 
-    public Balance lock(int userId) {
-        return db.queryForObject("SELECT * FROM balance WHERE userId = :userId FOR UPDATE",
+    public BalanceEntity lock(int userId) {
+        BalanceEntity result = db.queryForObject("SELECT * FROM balance WHERE userId = :userId FOR UPDATE",
                 Collections.singletonMap("userId", userId), ACCOUNT_MAPPER);
+        result.setBalanceRepository(this);
+        return result;
     }
 }
