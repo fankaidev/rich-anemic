@@ -1,11 +1,13 @@
-package net.fklj.richanemic.rdm.entity;
+package net.fklj.richanemic.rdm.entity.coupon;
 
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.fklj.richanemic.data.CommerceException.CouponUsedException;
 import net.fklj.richanemic.data.CommerceException.InvalidCouponException;
 import net.fklj.richanemic.data.Coupon;
+import net.fklj.richanemic.rdm.entity.AggregateRoot;
 import net.fklj.richanemic.rdm.repository.CouponRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Random;
 
@@ -13,7 +15,7 @@ import static net.fklj.richanemic.data.Constants.VOID_COUPON_ID;
 
 @Setter
 @NoArgsConstructor
-public class CouponEntity extends Coupon {
+public class CouponEntity extends Coupon implements AggregateRoot {
 
     public static final CouponEntity VOID_COUPON = new CouponEntity(VOID_COUPON_ID, 0, 0);
 
@@ -31,6 +33,7 @@ public class CouponEntity extends Coupon {
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public int use() throws CouponUsedException {
         if (id == VOID_COUPON_ID) {
             // don't use coupon, simply return couponValue of 0

@@ -7,7 +7,7 @@ import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.Product;
 import net.fklj.richanemic.data.Variant;
 import net.fklj.richanemic.event.OrderCancelledEvent;
-import net.fklj.richanemic.rdm.entity.ProductEntity;
+import net.fklj.richanemic.rdm.entity.product.ProductEntity;
 import net.fklj.richanemic.rdm.repository.ProductRepository;
 import net.fklj.richanemic.service.product.ProductTxService;
 import org.springframework.beans.factory.annotation.Autowired;

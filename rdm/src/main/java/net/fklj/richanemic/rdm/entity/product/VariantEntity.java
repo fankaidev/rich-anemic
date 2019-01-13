@@ -1,4 +1,4 @@
-package net.fklj.richanemic.rdm.entity;
+package net.fklj.richanemic.rdm.entity.product;
 
 import lombok.NoArgsConstructor;
 import lombok.Setter;

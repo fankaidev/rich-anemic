@@ -1,7 +1,7 @@
 package net.fklj.richanemic.rdm.repository;
 
 import net.fklj.richanemic.data.Balance;
-import net.fklj.richanemic.rdm.entity.BalanceEntity;
+import net.fklj.richanemic.rdm.entity.balance.BalanceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;

@@ -1,7 +1,7 @@
 package net.fklj.richanemic.rdm.repository;
 
 import net.fklj.richanemic.data.Coupon;
-import net.fklj.richanemic.rdm.entity.CouponEntity;
+import net.fklj.richanemic.rdm.entity.coupon.CouponEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;

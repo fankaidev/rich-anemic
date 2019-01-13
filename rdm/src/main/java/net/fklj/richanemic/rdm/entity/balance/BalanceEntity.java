@@ -1,4 +1,4 @@
-package net.fklj.richanemic.rdm.entity;
+package net.fklj.richanemic.rdm.entity.balance;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -6,11 +6,13 @@ import net.fklj.richanemic.data.Balance;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InsufficientBalanceException;
 import net.fklj.richanemic.data.CommerceException.InvalidBalanceAmountException;
+import net.fklj.richanemic.rdm.entity.AggregateRoot;
 import net.fklj.richanemic.rdm.repository.BalanceRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Setter
-public class BalanceEntity extends Balance {
+public class BalanceEntity extends Balance implements AggregateRoot {
 
     private BalanceRepository balanceRepository;
 
@@ -23,6 +25,7 @@ public class BalanceEntity extends Balance {
         save();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void use(int useAmount) throws CommerceException {
         if (useAmount <= 0) {
             throw new InvalidBalanceAmountException();

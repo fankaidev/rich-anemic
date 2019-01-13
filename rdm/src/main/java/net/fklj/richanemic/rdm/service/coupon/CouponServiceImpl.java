@@ -4,7 +4,7 @@ import net.fklj.richanemic.data.CommerceException.CouponNotFoundException;
 import net.fklj.richanemic.data.CommerceException.CouponUsedException;
 import net.fklj.richanemic.data.CommerceException.InvalidCouponException;
 import net.fklj.richanemic.data.Coupon;
-import net.fklj.richanemic.rdm.entity.CouponEntity;
+import net.fklj.richanemic.rdm.entity.coupon.CouponEntity;
 import net.fklj.richanemic.rdm.repository.CouponRepository;
 import net.fklj.richanemic.service.coupon.CouponTxService;
 import org.springframework.beans.factory.annotation.Autowired;

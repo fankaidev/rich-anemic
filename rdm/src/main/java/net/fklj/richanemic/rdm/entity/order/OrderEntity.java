@@ -1,4 +1,4 @@
-package net.fklj.richanemic.rdm.entity;
+package net.fklj.richanemic.rdm.entity.order;
 
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,6 +10,7 @@ import net.fklj.richanemic.data.Order;
 import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.OrderStatus;
 import net.fklj.richanemic.data.Payment;
+import net.fklj.richanemic.rdm.entity.AggregateRoot;
 import net.fklj.richanemic.rdm.repository.OrderRepository;
 import net.fklj.richanemic.rdm.repository.PaymentRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 
 @Setter
 @NoArgsConstructor
-public class OrderEntity extends Order {
+public class OrderEntity extends Order implements AggregateRoot {
 
     private OrderRepository orderRepository;
 

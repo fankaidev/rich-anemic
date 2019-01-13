@@ -7,7 +7,7 @@ import net.fklj.richanemic.data.Order;
 import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.Payment;
 import net.fklj.richanemic.event.OrderCancelledEvent;
-import net.fklj.richanemic.rdm.entity.OrderEntity;
+import net.fklj.richanemic.rdm.entity.order.OrderEntity;
 import net.fklj.richanemic.rdm.repository.OrderRepository;
 import net.fklj.richanemic.rdm.repository.PaymentRepository;
 import net.fklj.richanemic.service.order.OrderTxService;

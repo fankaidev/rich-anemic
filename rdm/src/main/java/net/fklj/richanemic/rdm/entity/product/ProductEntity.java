@@ -1,4 +1,4 @@
-package net.fklj.richanemic.rdm.entity;
+package net.fklj.richanemic.rdm.entity.product;
 
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,6 +13,7 @@ import net.fklj.richanemic.data.CommerceException.VariantQuotaException;
 import net.fklj.richanemic.data.Product;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.Variant;
+import net.fklj.richanemic.rdm.entity.AggregateRoot;
 import net.fklj.richanemic.rdm.repository.ProductRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +26,7 @@ import static net.fklj.richanemic.data.Constants.PRODUCT_QUOTA_INFINITY;
 @Slf4j
 @Setter
 @NoArgsConstructor
-public class ProductEntity extends Product {
+public class ProductEntity extends Product implements AggregateRoot {
 
     private ProductRepository productRepository;
 
@@ -67,11 +68,13 @@ public class ProductEntity extends Product {
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void activate() {
         this.status = ProductStatus.ACTIVE;
         save();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void inactivate() {
         this.status = ProductStatus.INACTIVE;
         save();
@@ -113,11 +116,13 @@ public class ProductEntity extends Product {
         productRepository.saveProduct(this);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void inactivateVariant(int variantId) throws CommerceException {
         VariantEntity variant = getVariant(variantId);
         variant.inactivate();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void activateVariant(int variantId) throws CommerceException {
         VariantEntity variant = getVariant(variantId);
         variant.activate();
