@@ -1,4 +1,4 @@
-package net.fklj.richanemic.adm.data;
+package net.fklj.richanemic.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,11 +11,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Coupon {
 
-    private int id;
+    protected int id;
 
-    private int userId;
+    protected int userId;
 
-    private int value;
+    protected int value;
 
-    private boolean used;
+    protected boolean used;
 }

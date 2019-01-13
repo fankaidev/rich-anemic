@@ -1,11 +1,11 @@
-package net.fklj.richanemic.adm;
+package net.fklj.richanemic;
 
-import net.fklj.richanemic.adm.data.OrderItem;
-import net.fklj.richanemic.adm.data.Product;
-import net.fklj.richanemic.adm.data.Variant;
-import net.fklj.richanemic.adm.service.AppService;
-import net.fklj.richanemic.adm.service.order.OrderTxService;
-import net.fklj.richanemic.adm.service.product.ProductTxService;
+import net.fklj.richanemic.data.OrderItem;
+import net.fklj.richanemic.data.Product;
+import net.fklj.richanemic.data.Variant;
+import net.fklj.richanemic.service.AppService;
+import net.fklj.richanemic.service.order.OrderTxService;
+import net.fklj.richanemic.service.product.ProductTxService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import org.junit.Test;

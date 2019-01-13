@@ -1,4 +1,4 @@
-package net.fklj.richanemic.adm.data;
+package net.fklj.richanemic.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,15 +14,15 @@ import static net.fklj.richanemic.data.Constants.PRODUCT_QUOTA_INFINITY;
 @AllArgsConstructor
 public class Product {
 
-    private int id;
+    protected int id;
 
-    private int price;
+    protected int price;
 
-    private int quota;
+    protected int quota;
 
-    private int soldCount;
+    protected int soldCount;
 
-    private ProductStatus status;
+    protected ProductStatus status;
 
     public boolean isOutOfStock(int quantity) {
         return quota != PRODUCT_QUOTA_INFINITY && quota < soldCount + quantity;

@@ -1,13 +1,13 @@
-package net.fklj.richanemic.adm;
+package net.fklj.richanemic;
 
-import net.fklj.richanemic.adm.data.Coupon;
-import net.fklj.richanemic.adm.data.Order;
-import net.fklj.richanemic.adm.data.OrderItem;
-import net.fklj.richanemic.adm.data.Payment;
-import net.fklj.richanemic.adm.service.AppService;
-import net.fklj.richanemic.adm.service.balance.BalanceServiceImpl;
-import net.fklj.richanemic.adm.service.coupon.CouponService;
-import net.fklj.richanemic.adm.service.order.OrderTxService;
+import net.fklj.richanemic.data.Coupon;
+import net.fklj.richanemic.data.Order;
+import net.fklj.richanemic.data.OrderItem;
+import net.fklj.richanemic.data.Payment;
+import net.fklj.richanemic.service.AppService;
+import net.fklj.richanemic.service.balance.BalanceService;
+import net.fklj.richanemic.service.coupon.CouponService;
+import net.fklj.richanemic.service.order.OrderTxService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.OrderItemStatus;
 import net.fklj.richanemic.data.OrderStatus;
@@ -21,7 +21,7 @@ import static org.junit.Assert.assertThat;
 public class PayTest extends BaseTest {
 
     @Autowired
-    private BalanceServiceImpl balanceService;
+    private BalanceService balanceService;
 
     @Autowired
     private CouponService couponService;

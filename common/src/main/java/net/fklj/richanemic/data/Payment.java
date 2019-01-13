@@ -1,4 +1,4 @@
-package net.fklj.richanemic.adm.data;
+package net.fklj.richanemic.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,10 +11,15 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Balance {
+public class Payment {
 
-    private int userId;
+    protected int id;
 
-    private int amount;
+    protected int orderId;
 
+    protected int userId;
+
+    protected int cashFee;
+
+    protected int couponId;
 }

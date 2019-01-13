@@ -1,8 +1,8 @@
-package net.fklj.richanemic.adm.service.order;
+package net.fklj.richanemic.service.order;
 
-import net.fklj.richanemic.adm.data.Order;
-import net.fklj.richanemic.adm.data.OrderItem;
-import net.fklj.richanemic.adm.data.Payment;
+import net.fklj.richanemic.data.Order;
+import net.fklj.richanemic.data.OrderItem;
+import net.fklj.richanemic.data.Payment;
 
 import java.util.Collection;
 import java.util.List;

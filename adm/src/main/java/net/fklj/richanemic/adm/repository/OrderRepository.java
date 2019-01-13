@@ -1,8 +1,8 @@
 package net.fklj.richanemic.adm.repository;
 
 import com.google.common.collect.ImmutableMap;
-import net.fklj.richanemic.adm.data.Order;
-import net.fklj.richanemic.adm.data.OrderItem;
+import net.fklj.richanemic.data.Order;
+import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.OrderItemStatus;
 import net.fklj.richanemic.data.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;

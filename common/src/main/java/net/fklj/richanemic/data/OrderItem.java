@@ -1,4 +1,4 @@
-package net.fklj.richanemic.adm.data;
+package net.fklj.richanemic.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,16 +12,16 @@ import net.fklj.richanemic.data.OrderItemStatus;
 @AllArgsConstructor
 public class OrderItem {
 
-    private int id;
+    protected int id;
 
-    private int orderId;
+    protected int orderId;
 
-    private int productId;
+    protected int productId;
 
-    private int variantId;
+    protected int variantId;
 
-    private int quantity;
+    protected int quantity;
 
-    private OrderItemStatus status;
+    protected OrderItemStatus status;
 
 }

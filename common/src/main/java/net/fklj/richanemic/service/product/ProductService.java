@@ -1,7 +1,7 @@
-package net.fklj.richanemic.adm.service.product;
+package net.fklj.richanemic.service.product;
 
-import net.fklj.richanemic.adm.data.Product;
-import net.fklj.richanemic.adm.data.Variant;
+import net.fklj.richanemic.data.Product;
+import net.fklj.richanemic.data.Variant;
 
 import java.util.Collection;
 import java.util.List;

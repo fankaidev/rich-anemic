@@ -1,10 +1,9 @@
-package net.fklj.richanemic.adm.data;
+package net.fklj.richanemic.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.fklj.richanemic.data.OrderStatus;
 
 import java.util.List;
 
@@ -14,12 +13,12 @@ import java.util.List;
 @AllArgsConstructor
 public class Order {
 
-    private int id;
+    protected int id;
 
-    private int userId;
+    protected int userId;
 
-    private List<OrderItem> items;
+    protected List<OrderItem> items;
 
-    private OrderStatus status;
+    protected OrderStatus status;
 
 }

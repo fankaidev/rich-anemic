@@ -1,4 +1,4 @@
-package net.fklj.richanemic.adm;
+package net.fklj.richanemic;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

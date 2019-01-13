@@ -1,8 +1,8 @@
-package net.fklj.richanemic.adm.event;
+package net.fklj.richanemic.event;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.fklj.richanemic.adm.data.Order;
+import net.fklj.richanemic.data.Order;
 import org.springframework.context.ApplicationEvent;
 
 @Getter

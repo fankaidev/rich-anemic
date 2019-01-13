@@ -1,9 +1,9 @@
-package net.fklj.richanemic.adm;
+package net.fklj.richanemic;
 
 import lombok.extern.slf4j.Slf4j;
-import net.fklj.richanemic.adm.data.OrderItem;
-import net.fklj.richanemic.adm.service.AppService;
-import net.fklj.richanemic.adm.service.order.OrderTxService;
+import net.fklj.richanemic.data.OrderItem;
+import net.fklj.richanemic.service.AppService;
+import net.fklj.richanemic.service.order.OrderTxService;
 import net.fklj.richanemic.data.CommerceException;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

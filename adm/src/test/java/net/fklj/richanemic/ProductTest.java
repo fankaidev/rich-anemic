@@ -1,8 +1,8 @@
-package net.fklj.richanemic.adm;
+package net.fklj.richanemic;
 
-import net.fklj.richanemic.adm.data.Product;
-import net.fklj.richanemic.adm.data.Variant;
-import net.fklj.richanemic.adm.service.product.ProductTxService;
+import net.fklj.richanemic.data.Product;
+import net.fklj.richanemic.data.Variant;
+import net.fklj.richanemic.service.product.ProductTxService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidProductException;
 import net.fklj.richanemic.data.CommerceException.InvalidVariantException;

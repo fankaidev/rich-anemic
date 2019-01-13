@@ -1,10 +1,10 @@
-package net.fklj.richanemic.adm;
+package net.fklj.richanemic;
 
-import net.fklj.richanemic.adm.data.Order;
-import net.fklj.richanemic.adm.data.OrderItem;
-import net.fklj.richanemic.adm.service.AppService;
-import net.fklj.richanemic.adm.service.order.OrderTxService;
-import net.fklj.richanemic.adm.service.product.ProductService;
+import net.fklj.richanemic.data.Order;
+import net.fklj.richanemic.data.OrderItem;
+import net.fklj.richanemic.service.AppService;
+import net.fklj.richanemic.service.order.OrderTxService;
+import net.fklj.richanemic.service.product.ProductService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.DuplicateProductException;
 import net.fklj.richanemic.data.CommerceException.InactiveProductException;

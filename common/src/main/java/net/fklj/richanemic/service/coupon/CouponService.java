@@ -1,6 +1,6 @@
-package net.fklj.richanemic.adm.service.coupon;
+package net.fklj.richanemic.service.coupon;
 
-import net.fklj.richanemic.adm.data.Coupon;
+import net.fklj.richanemic.data.Coupon;
 
 import java.util.List;
 import java.util.Optional;

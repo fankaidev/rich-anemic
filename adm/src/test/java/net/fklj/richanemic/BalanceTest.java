@@ -1,6 +1,6 @@
-package net.fklj.richanemic.adm;
+package net.fklj.richanemic;
 
-import net.fklj.richanemic.adm.service.balance.BalanceTxService;
+import net.fklj.richanemic.service.balance.BalanceTxService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidBalanceAmountException;
 import org.junit.Test;

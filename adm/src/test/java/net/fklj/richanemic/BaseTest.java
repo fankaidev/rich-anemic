@@ -1,24 +1,17 @@
-package net.fklj.richanemic.adm;
+package net.fklj.richanemic;
 
-import net.fklj.richanemic.adm.data.OrderItem;
-import net.fklj.richanemic.adm.repository.BalanceRepository;
-import net.fklj.richanemic.adm.repository.CouponRepository;
-import net.fklj.richanemic.adm.repository.OrderRepository;
-import net.fklj.richanemic.adm.repository.PaymentRepository;
-import net.fklj.richanemic.adm.repository.ProductRepository;
-import net.fklj.richanemic.adm.service.AppService;
-import net.fklj.richanemic.adm.service.AppServiceImpl;
-import net.fklj.richanemic.adm.service.balance.BalanceServiceImpl;
-import net.fklj.richanemic.adm.service.coupon.CouponServiceImpl;
-import net.fklj.richanemic.adm.service.coupon.CouponTxService;
-import net.fklj.richanemic.adm.service.order.OrderServiceImpl;
-import net.fklj.richanemic.adm.service.product.ProductServiceImpl;
-import net.fklj.richanemic.adm.service.product.ProductTxService;
+import net.fklj.richanemic.BaseTest.SpringConfig;
+import net.fklj.richanemic.data.OrderItem;
+import net.fklj.richanemic.service.AppService;
+import net.fklj.richanemic.service.coupon.CouponTxService;
+import net.fklj.richanemic.service.product.ProductTxService;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.OrderItemStatus;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,14 +25,13 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @RunWith(SpringRunner.class)
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @ContextConfiguration(classes = {
-        TestDbConfiguration.class,
-        ProductServiceImpl.class, OrderServiceImpl.class,
-        ProductRepository.class, OrderRepository.class,
-        BalanceServiceImpl.class, BalanceRepository.class,
-        CouponServiceImpl.class, CouponRepository.class,
-        AppServiceImpl.class, PaymentRepository.class
+        TestDbConfiguration.class, SpringConfig.class
 })
 public abstract class BaseTest {
+
+    @Configuration
+    @ComponentScan("net.fklj.richanemic.adm")
+    public static class SpringConfig {}
 
     @Autowired
     private ProductTxService productService;

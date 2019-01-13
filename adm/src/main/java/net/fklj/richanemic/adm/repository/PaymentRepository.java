@@ -1,6 +1,6 @@
 package net.fklj.richanemic.adm.repository;
 
-import net.fklj.richanemic.adm.data.Payment;
+import net.fklj.richanemic.data.Payment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;

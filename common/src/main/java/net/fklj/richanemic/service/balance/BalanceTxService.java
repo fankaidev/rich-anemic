@@ -1,4 +1,4 @@
-package net.fklj.richanemic.adm.service.balance;
+package net.fklj.richanemic.service.balance;
 
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InvalidBalanceAmountException;

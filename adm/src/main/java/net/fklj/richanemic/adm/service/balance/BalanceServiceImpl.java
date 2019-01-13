@@ -1,11 +1,12 @@
 package net.fklj.richanemic.adm.service.balance;
 
 import lombok.extern.slf4j.Slf4j;
-import net.fklj.richanemic.adm.data.Balance;
+import net.fklj.richanemic.data.Balance;
 import net.fklj.richanemic.adm.repository.BalanceRepository;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InsufficientBalanceException;
 import net.fklj.richanemic.data.CommerceException.InvalidBalanceAmountException;
+import net.fklj.richanemic.service.balance.BalanceTxService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

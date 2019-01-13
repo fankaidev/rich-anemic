@@ -1,4 +1,4 @@
-package net.fklj.richanemic.adm.service.coupon;
+package net.fklj.richanemic.service.coupon;
 
 import net.fklj.richanemic.data.CommerceException.CouponNotFoundException;
 import net.fklj.richanemic.data.CommerceException.CouponUsedException;

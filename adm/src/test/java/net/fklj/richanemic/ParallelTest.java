@@ -1,9 +1,9 @@
-package net.fklj.richanemic.adm;
+package net.fklj.richanemic;
 
-import net.fklj.richanemic.adm.service.AppService;
-import net.fklj.richanemic.adm.service.balance.BalanceService;
-import net.fklj.richanemic.adm.service.coupon.CouponService;
-import net.fklj.richanemic.adm.service.order.OrderTxService;
+import net.fklj.richanemic.service.AppService;
+import net.fklj.richanemic.service.balance.BalanceService;
+import net.fklj.richanemic.service.coupon.CouponService;
+import net.fklj.richanemic.service.order.OrderTxService;
 import net.fklj.richanemic.data.CommerceException;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
