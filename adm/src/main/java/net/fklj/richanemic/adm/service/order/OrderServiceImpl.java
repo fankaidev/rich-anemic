@@ -124,8 +124,10 @@ public class OrderServiceImpl implements OrderTxService {
     }
 
     @Override
-    public void refundItem(int orderId, OrderItem item) throws OrderNotFoundException {
-        lock(orderId);
+    public void refundItem(int orderId, int orderItemId) throws OrderNotFoundException {
+        Order order = lock(orderId);
+        OrderItem item = order.getItems().stream().filter(it -> it.getId() == orderItemId).findAny()
+                .orElseThrow(OrderNotFoundException::new);
         orderRepository.updateOrderItemStatus(item.getId(), OrderItemStatus.REFUNDED);
     }
 

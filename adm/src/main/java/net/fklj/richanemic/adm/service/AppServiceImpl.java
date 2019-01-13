@@ -80,12 +80,10 @@ public class AppServiceImpl implements AppService {
         Order order = orderService.getOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
         final int userId = order.getUserId();
-        OrderItem item = order.getItems().stream().filter(it -> it.getId() == orderItemId).findAny()
-                .orElseThrow(OrderNotFoundException::new);
         Payment payment = paymentRepository.getPaymentOfOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
 
-        orderService.refundItem(orderId, item);
+        orderService.refundItem(orderId, orderItemId);
 
         // don't refund coupon
         balanceService.deposit(userId, payment.getCashFee());

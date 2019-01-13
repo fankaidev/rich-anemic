@@ -17,7 +17,7 @@ public class Order {
 
     protected int userId;
 
-    protected List<OrderItem> items;
+    protected List<? extends OrderItem> items;
 
     protected OrderStatus status;
 

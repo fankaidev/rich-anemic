@@ -22,6 +22,6 @@ public interface OrderTxService extends OrderService {
     void pay(int orderId, int couponId, int cashFee) throws OrderNotFoundException;
 
     @Transactional(rollbackFor = Exception.class)
-    void refundItem(int orderId, OrderItem item) throws OrderNotFoundException;
+    void refundItem(int orderId, int orderItemId) throws OrderNotFoundException;
 
 }
