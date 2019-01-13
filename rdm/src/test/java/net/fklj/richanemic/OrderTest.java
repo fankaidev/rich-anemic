@@ -144,7 +144,7 @@ public class OrderTest extends BaseTest {
 
     @Test(expected = VariantMismatchException.class)
     public void testCreateOrderWithMismatch() throws CommerceException {
-        createOrder(USER1_ID, PRODUCT1_INACTIVE_ID, P2_VAR1_INACTIVE_ID, 2);
+        createOrder(USER1_ID, PRODUCT3_Q9_ID, P2_VAR1_INACTIVE_ID, 2);
     }
 
     @Test(expected = DuplicateProductException.class)

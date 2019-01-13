@@ -5,6 +5,8 @@ import net.fklj.richanemic.data.Product;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.Variant;
 import net.fklj.richanemic.data.VariantStatus;
+import net.fklj.richanemic.rdm.entity.ProductEntity;
+import net.fklj.richanemic.rdm.entity.VariantEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -32,15 +34,23 @@ public class ProductRepository {
     private static final RowMapper<Product> PRODUCT_MAPPER =
             new BeanPropertyRowMapper<>(Product.class);
 
+
+    private static final RowMapper<ProductEntity> PRODUCT_ENTITY_MAPPER =
+            new BeanPropertyRowMapper<>(ProductEntity.class);
+
+
     private static final RowMapper<Variant> VARIANT_MAPPER =
             new BeanPropertyRowMapper<>(Variant.class);
 
+    private static final RowMapper<VariantEntity> VARIANT_ENTITY_MAPPER =
+            new BeanPropertyRowMapper<>(VariantEntity.class);
 
     public void saveProduct(Product product) {
         BeanPropertySqlParameterSource source = new BeanPropertySqlParameterSource(product);
         source.registerSqlType("status", Types.VARCHAR);
         db.update("INSERT INTO product (id, quota, price, soldCount, status) " +
-                        "VALUES (:id, :quota, :price, :soldCount, :status)",
+                        "VALUES (:id, :quota, :price, :soldCount, :status) " +
+                        "ON DUPLICATE KEY UPDATE status = :status, quota = :quota, price = :price, soldCount = :soldCount",
                 source);
     }
 
@@ -48,14 +58,18 @@ public class ProductRepository {
         BeanPropertySqlParameterSource source = new BeanPropertySqlParameterSource(variant);
         source.registerSqlType("status", Types.VARCHAR);
         db.update("INSERT INTO variant (id, productId, quota, soldCount, status) " +
-                        "VALUES (:id, :productId, :quota, :soldCount, :status)",
+                        "VALUES (:id, :productId, :quota, :soldCount, :status) " +
+                        "ON DUPLICATE KEY UPDATE status = :status, quota = :quota, soldCount = :soldCount",
                 source);
     }
 
-    public Optional<Product> lockProduct(int productId) {
+    public Optional<ProductEntity> lockProduct(int productId) {
         try {
-            Product result = db.queryForObject("SELECT * FROM product WHERE id = :productId FOR UPDATE",
-                    singletonMap("productId", productId), PRODUCT_MAPPER);
+            ProductEntity result = db.queryForObject("SELECT * FROM product WHERE id = :productId FOR UPDATE",
+                    singletonMap("productId", productId), PRODUCT_ENTITY_MAPPER);
+            if (result != null) {
+                result.setProductRepository(this);
+            }
             return Optional.ofNullable(result);
         } catch (IncorrectResultSizeDataAccessException e) {
             return Optional.empty();
@@ -76,6 +90,17 @@ public class ProductRepository {
         try {
             Variant result = db.queryForObject("SELECT * FROM variant WHERE id = :variantId",
                 singletonMap("variantId", variantId), VARIANT_MAPPER);
+            return Optional.ofNullable(result);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<VariantEntity> getVariantEntity(int variantId) {
+        try {
+            VariantEntity result = db.queryForObject("SELECT * FROM variant WHERE id = :variantId",
+                    singletonMap("variantId", variantId), VARIANT_ENTITY_MAPPER);
+            result.setProductRepository(this);
             return Optional.ofNullable(result);
         } catch (IncorrectResultSizeDataAccessException e) {
             return Optional.empty();
