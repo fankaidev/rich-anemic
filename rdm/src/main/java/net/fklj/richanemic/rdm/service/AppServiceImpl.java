@@ -1,6 +1,7 @@
 package net.fklj.richanemic.rdm.service;
 
 import lombok.extern.slf4j.Slf4j;
+import net.fklj.richanemic.rdm.entity.OrderEntity;
 import net.fklj.richanemic.rdm.repository.OrderRepository;
 import net.fklj.richanemic.rdm.repository.PaymentRepository;
 import net.fklj.richanemic.data.CommerceException;
@@ -64,7 +65,7 @@ public class AppServiceImpl implements AppService {
 
     @Override
     public void payOrder(int orderId, int couponId) throws CommerceException {
-        Order order = orderService.getOrder(orderId)
+        OrderEntity order = orderRepository.lockOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
         final int userId = order.getUserId();
         final int fee = getOrderFee(order);
@@ -72,7 +73,7 @@ public class AppServiceImpl implements AppService {
         final int cashFee = fee - couponFee;
         balanceService.use(userId, cashFee);
 
-        orderService.pay(orderId, couponId, cashFee);
+        order.pay(couponId, cashFee);
     }
 
     @Override
@@ -80,12 +81,10 @@ public class AppServiceImpl implements AppService {
         Order order = orderService.getOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
         final int userId = order.getUserId();
-        OrderItem item = order.getItems().stream().filter(it -> it.getId() == orderItemId).findAny()
-                .orElseThrow(OrderNotFoundException::new);
         Payment payment = paymentRepository.getPaymentOfOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
 
-        orderService.refundItem(orderId, item);
+        orderService.refundItem(orderId, orderItemId);
 
         // don't refund coupon
         balanceService.deposit(userId, payment.getCashFee());
@@ -106,11 +105,10 @@ public class AppServiceImpl implements AppService {
 
     @Override
     public void cancelOrder(int orderId) throws CommerceException {
-        if (!orderService.cancel(orderId)) {
+        OrderEntity order = orderRepository.lockOrder(orderId).orElseThrow(OrderNotFoundException::new);
+        if (!order.cancel()) {
             return;
         }
-
-        Order order = orderRepository.getOrder(orderId).orElseThrow(OrderNotFoundException::new);
         for (OrderItem item : order.getItems()) {
             productService.releaseQuota(item.getProductId(), item.getVariantId(), item.getQuantity());
         }

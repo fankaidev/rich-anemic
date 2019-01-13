@@ -1,10 +1,13 @@
 package net.fklj.richanemic.rdm.repository;
 
 import com.google.common.collect.ImmutableMap;
+import net.fklj.richanemic.data.CommerceException.CreateOrderException;
 import net.fklj.richanemic.data.Order;
 import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.OrderItemStatus;
 import net.fklj.richanemic.data.OrderStatus;
+import net.fklj.richanemic.rdm.entity.OrderEntity;
+import net.fklj.richanemic.rdm.entity.OrderItemEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -29,11 +32,26 @@ public class OrderRepository {
     @Autowired
     private NamedParameterJdbcOperations db;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
     private static final RowMapper<OrderItem> ORDER_ITEM_MAPPER =
             new BeanPropertyRowMapper<>(OrderItem.class);
 
     private static final RowMapper<Order> ORDER_MAPPER =
             new BeanPropertyRowMapper<>(Order.class);
+
+    private static final RowMapper<OrderItemEntity> ORDER_ITEM_ENTITY_MAPPER =
+            new BeanPropertyRowMapper<>(OrderItemEntity.class);
+
+    private static final RowMapper<OrderEntity> ORDER_ENTITY_MAPPER =
+            new BeanPropertyRowMapper<>(OrderEntity.class);
+
+    public OrderEntity createOrder(int userId, List<OrderItem> items) throws CreateOrderException {
+        OrderEntity order = new OrderEntity(userId, items);
+        saveOrder(order);
+        return order;
+    }
 
     public void saveOrder(Order order) {
         BeanPropertySqlParameterSource orderSource = new BeanPropertySqlParameterSource(order);
@@ -51,6 +69,12 @@ public class OrderRepository {
         }
     }
 
+    public void saveOrderItem(OrderItemEntity item) {
+        BeanPropertySqlParameterSource itemSource = new BeanPropertySqlParameterSource(item);
+        itemSource.registerSqlType("status", Types.VARCHAR);
+        db.update("UPDATE order_item SET status = :status WHERE id = :id", itemSource);
+    }
+
     public Optional<Order> getOrder(int orderId) {
         try {
             Order order = db.queryForObject("SELECT * FROM `order` WHERE id = :id",
@@ -64,12 +88,15 @@ public class OrderRepository {
         }
     }
 
-    public Optional<Order> lockOrder(int orderId) {
+    public Optional<OrderEntity> lockOrder(int orderId) {
         try {
-            Order order = db.queryForObject("SELECT * FROM `order` WHERE id = :id FOR UPDATE",
+            OrderEntity order = db.queryForObject("SELECT * FROM `order` WHERE id = :id FOR UPDATE",
                     singletonMap("id", orderId),
-                    ORDER_MAPPER);
-            List<OrderItem> items = getItemsOfOrder(orderId);
+                    ORDER_ENTITY_MAPPER);
+            List<OrderItemEntity> items = getItemEntitiesOfOrder(orderId);
+            items.forEach(item -> item.setOrderRepository(this));
+            order.setOrderRepository(this);
+            order.setPaymentRepository(paymentRepository);
             order.setItems(items);
             return Optional.of(order);
         } catch (IncorrectResultSizeDataAccessException e) {
@@ -81,6 +108,12 @@ public class OrderRepository {
         return db.query("SELECT * FROM order_item WHERE orderId = :orderId",
                 singletonMap("orderId", orderId),
                 ORDER_ITEM_MAPPER);
+    }
+
+    private List<OrderItemEntity> getItemEntitiesOfOrder(int orderId) {
+        return db.query("SELECT * FROM order_item WHERE orderId = :orderId",
+                singletonMap("orderId", orderId),
+                ORDER_ITEM_ENTITY_MAPPER);
     }
 
     public void updateOrderStatus(int orderId, OrderStatus status) {
@@ -121,4 +154,5 @@ public class OrderRepository {
                 singletonMap("variantId", variantId),
                 ORDER_ITEM_MAPPER);
     }
+
 }
