@@ -5,19 +5,15 @@ import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.OrderItemStatus;
 import net.fklj.richanemic.data.OrderStatus;
 import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Lang;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.Update;
-import org.apache.ibatis.jdbc.SQL;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-
-import static java.util.stream.Collectors.joining;
 
 @Mapper
 public interface OrderRepository {
@@ -49,7 +45,8 @@ public interface OrderRepository {
     @Select("SELECT * FROM order_item WHERE id = #{orderItemId}")
     OrderItem getOrderItem(int orderItemId);
 
-    @SelectProvider(type= SqlProvider.class, method="getOrderItemsByOrderItemIds")
+    @Lang(MybatisExtendedLanguageDriver.class)
+    @Select("SELECT * FROM order_item WHERE id IN (#{orderItemIds})")
     List<OrderItem> getOrderItemsByOrderItemIds(
             @Param("orderItemIds") Collection<Integer> orderItemIds);
 
@@ -59,18 +56,4 @@ public interface OrderRepository {
     @Select("SELECT * FROM order_item WHERE variantId = #{variantId}")
     List<OrderItem> getOrderItemsByVariantId(int variantId);
 
-
-    class SqlProvider {
-
-        public static String getOrderItemsByOrderItemIds(Map<String, Object> params){
-            Collection<Integer> orderItemIds = (Collection<Integer>) params.get("orderItemIds");
-            String str = orderItemIds.stream().map(i -> i.toString()).collect(joining(","));
-            return new SQL(){{
-                SELECT("*");
-                FROM("order_item");
-                WHERE("id in ("+ str + ")");
-            }}.toString();
-        }
-
-    }
 }
