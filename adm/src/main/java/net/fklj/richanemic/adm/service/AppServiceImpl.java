@@ -1,20 +1,18 @@
 package net.fklj.richanemic.adm.service;
 
 import lombok.extern.slf4j.Slf4j;
+import net.fklj.richanemic.data.CommerceException;
+import net.fklj.richanemic.data.CommerceException.OrderNotFoundException;
 import net.fklj.richanemic.data.Order;
 import net.fklj.richanemic.data.OrderItem;
+import net.fklj.richanemic.data.OrderStatus;
 import net.fklj.richanemic.data.Payment;
 import net.fklj.richanemic.data.Product;
-import net.fklj.richanemic.adm.repository.OrderRepository;
-import net.fklj.richanemic.adm.repository.PaymentRepository;
 import net.fklj.richanemic.service.AppService;
 import net.fklj.richanemic.service.balance.BalanceTxService;
 import net.fklj.richanemic.service.coupon.CouponTxService;
 import net.fklj.richanemic.service.order.OrderTxService;
 import net.fklj.richanemic.service.product.ProductTxService;
-import net.fklj.richanemic.data.CommerceException;
-import net.fklj.richanemic.data.CommerceException.OrderNotFoundException;
-import net.fklj.richanemic.data.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,9 +26,6 @@ import static java.util.stream.Collectors.toList;
 public class AppServiceImpl implements AppService {
 
     @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
     private OrderTxService orderService;
 
     @Autowired
@@ -42,12 +37,9 @@ public class AppServiceImpl implements AppService {
     @Autowired
     private CouponTxService couponService;
 
-    @Autowired
-    private PaymentRepository paymentRepository;
-
     @Override
     public void callbackVariant(int productId, int variantId) throws CommerceException {
-        List<OrderItem> items = orderRepository.getOrderItemsByVariantId(variantId);
+        List<OrderItem> items = orderService.getOrderItemsByVariantId(variantId);
         for (OrderItem item : items) {
             // TODO: lock
             Order order = orderService.getOrder(item.getOrderId())
@@ -80,7 +72,7 @@ public class AppServiceImpl implements AppService {
         Order order = orderService.getOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
         final int userId = order.getUserId();
-        Payment payment = paymentRepository.getPaymentOfOrder(orderId)
+        Payment payment = orderService.getPaymentOfOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
 
         orderService.refundItem(orderId, orderItemId);
@@ -108,15 +100,14 @@ public class AppServiceImpl implements AppService {
             return;
         }
 
-        Order order = orderRepository.getOrder(orderId).orElseThrow(OrderNotFoundException::new);
+        Order order = orderService.getOrder(orderId).orElseThrow(OrderNotFoundException::new);
         for (OrderItem item : order.getItems()) {
             productService.releaseQuota(item.getProductId(), item.getVariantId(), item.getQuantity());
         }
     }
 
     @Override
-    public int createOrder(int userId, List<OrderItem> items)
-            throws CommerceException {
+    public int createOrder(int userId, List<OrderItem> items) throws CommerceException {
         int orderId = orderService.create(userId, items);
         for (OrderItem item : items) {
             productService.useQuota(item.getProductId(), item.getVariantId(), item.getQuantity());

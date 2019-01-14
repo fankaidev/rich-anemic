@@ -2,10 +2,6 @@ package net.fklj.richanemic.adm.service.product;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.fklj.richanemic.data.OrderItem;
-import net.fklj.richanemic.data.Product;
-import net.fklj.richanemic.data.Variant;
-import net.fklj.richanemic.event.OrderCancelledEvent;
 import net.fklj.richanemic.adm.repository.ProductRepository;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InactiveProductException;
@@ -15,8 +11,12 @@ import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
 import net.fklj.richanemic.data.CommerceException.VariantQuotaException;
+import net.fklj.richanemic.data.OrderItem;
+import net.fklj.richanemic.data.Product;
 import net.fklj.richanemic.data.ProductStatus;
+import net.fklj.richanemic.data.Variant;
 import net.fklj.richanemic.data.VariantStatus;
+import net.fklj.richanemic.event.OrderCancelledEvent;
 import net.fklj.richanemic.service.product.ProductTxService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -27,7 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Function;
 
+import static java.util.stream.Collectors.toMap;
 import static net.fklj.richanemic.data.Constants.PRODUCT_MAX_PRICE;
 import static net.fklj.richanemic.data.Constants.PRODUCT_QUOTA_INFINITY;
 
@@ -40,12 +42,12 @@ public class ProductServiceImpl implements ProductTxService {
 
     @Override
     public Optional<Product> getProduct(int productId) {
-        return productRepository.getProduct(productId);
+        return Optional.ofNullable(productRepository.getProduct(productId));
     }
 
     @Override
     public Optional<Variant> getVariant(int variantId) {
-        return productRepository.getVariant(variantId);
+        return Optional.ofNullable(productRepository.getVariant(variantId));
     }
 
     @Override
@@ -55,13 +57,18 @@ public class ProductServiceImpl implements ProductTxService {
 
     @Override
     public Map<Integer, Product> getProducts(Collection<Integer> productIds) {
-        return productRepository.getProducts(productIds);
+        return productRepository.getProducts(productIds).stream().collect(
+                toMap(Product::getId, Function.identity()));
     }
 
     /*************************** transaction ********************/
 
     private Product lock(int productId) throws InvalidProductException {
-        Product product = productRepository.lockProduct(productId).orElseThrow(InvalidProductException::new);
+        Product product = productRepository.lockProduct(productId);
+
+        if (product == null) {
+            throw new InvalidProductException();
+        }
 
         // mock delay
         try {
@@ -74,7 +81,10 @@ public class ProductServiceImpl implements ProductTxService {
     }
 
     private Variant validateVariantOfProduct(int productId, int variantId) throws CommerceException {
-        Variant variant = productRepository.getVariant(variantId).orElseThrow(InvalidVariantException::new);
+        Variant variant = productRepository.getVariant(variantId);
+        if (variant == null) {
+            throw new InvalidVariantException();
+        }
         if (variant.getProductId() != productId) {
             throw new VariantMismatchException();
         }

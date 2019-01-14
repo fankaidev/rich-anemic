@@ -1,10 +1,6 @@
 package net.fklj.richanemic.adm.service.order;
 
 import lombok.extern.slf4j.Slf4j;
-import net.fklj.richanemic.data.Order;
-import net.fklj.richanemic.data.OrderItem;
-import net.fklj.richanemic.data.Payment;
-import net.fklj.richanemic.event.OrderCancelledEvent;
 import net.fklj.richanemic.adm.repository.OrderRepository;
 import net.fklj.richanemic.adm.repository.PaymentRepository;
 import net.fklj.richanemic.data.CommerceException;
@@ -12,8 +8,12 @@ import net.fklj.richanemic.data.CommerceException.CreateOrderException;
 import net.fklj.richanemic.data.CommerceException.DuplicateProductException;
 import net.fklj.richanemic.data.CommerceException.InvalidQuantityException;
 import net.fklj.richanemic.data.CommerceException.OrderNotFoundException;
+import net.fklj.richanemic.data.Order;
+import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.OrderItemStatus;
 import net.fklj.richanemic.data.OrderStatus;
+import net.fklj.richanemic.data.Payment;
+import net.fklj.richanemic.event.OrderCancelledEvent;
 import net.fklj.richanemic.service.order.OrderTxService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -40,17 +42,25 @@ public class OrderServiceImpl implements OrderTxService {
 
     @Override
     public Optional<Order> getOrder(int orderId) {
-        return orderRepository.getOrder(orderId);
+        Order order = orderRepository.getOrder(orderId);
+        if (order == null) {
+            return Optional.empty();
+        }
+        List<OrderItem> items = orderRepository.getItemsOfOrder(orderId);
+        order.setItems(items);
+        return Optional.of(order);
     }
 
     @Override
     public Optional<OrderItem> getOrderItem(int orderItemId) {
-        return orderRepository.getOrderItem(orderItemId);
+        return Optional.ofNullable(orderRepository.getOrderItem(orderItemId));
     }
 
     @Override
     public Map<Integer, OrderItem> getOrderItemsByOrderItemIds(Collection<Integer> orderItemIds) {
-        return orderRepository.getOrderItemsByOrderItemIds(orderItemIds);
+        return orderRepository.getOrderItemsByOrderItemIds(orderItemIds)
+                .stream()
+                .collect(Collectors.toMap(OrderItem::getId, Function.identity()));
     }
 
     @Override
@@ -66,7 +76,13 @@ public class OrderServiceImpl implements OrderTxService {
     /***************** transaction *******************/
 
     private Order lock(int orderId) throws OrderNotFoundException {
-        return orderRepository.lockOrder(orderId).orElseThrow(OrderNotFoundException::new);
+        Order order = orderRepository.lockOrder(orderId);
+        if (order == null) {
+            throw new OrderNotFoundException();
+        }
+        List<OrderItem> items = orderRepository.getItemsOfOrder(orderId);
+        order.setItems(items);
+        return order;
     }
 
     @Override
@@ -74,6 +90,7 @@ public class OrderServiceImpl implements OrderTxService {
         Order order = prepareOrder(userId, items);
         validateOrder(items);
         orderRepository.saveOrder(order);
+        order.getItems().forEach(item -> orderRepository.saveItem(item));
         return order.getId();
     }
 
@@ -133,7 +150,7 @@ public class OrderServiceImpl implements OrderTxService {
 
     @Override
     public Optional<Payment> getPaymentOfOrder(int orderId) {
-        return paymentRepository.getPaymentOfOrder(orderId);
+        return Optional.ofNullable(paymentRepository.getPaymentOfOrder(orderId));
     }
 
     @Override

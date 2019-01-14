@@ -27,13 +27,20 @@ public class CouponServiceImpl implements CouponTxService {
             return 0;
         }
 
-        Coupon coupon = couponRepository.lockCoupon(couponId)
-                .orElseThrow(CouponNotFoundException::new);
+        Coupon coupon = lock(couponId);
         if (coupon.isUsed()) {
             throw new CouponUsedException();
         }
         couponRepository.updateCouponUsed(couponId);
         return coupon.getValue();
+    }
+
+    private Coupon lock(int couponId) throws CouponNotFoundException {
+        Coupon coupon = couponRepository.lockCoupon(couponId);
+        if (coupon == null) {
+            throw new CouponNotFoundException();
+        }
+        return coupon;
     }
 
     @Override

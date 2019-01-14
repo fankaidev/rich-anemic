@@ -1,18 +1,17 @@
 package net.fklj.richanemic;
 
+import net.fklj.richanemic.data.CommerceException;
+import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.Product;
 import net.fklj.richanemic.data.Variant;
 import net.fklj.richanemic.service.AppService;
 import net.fklj.richanemic.service.order.OrderTxService;
 import net.fklj.richanemic.service.product.ProductTxService;
-import net.fklj.richanemic.data.CommerceException;
-import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.is;
@@ -20,7 +19,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 
-@EnableTransactionManagement
 public class TransactionTest extends BaseTest {
 
     @SpyBean

@@ -9,12 +9,17 @@ import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.OrderItemStatus;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mybatis.spring.annotation.MapperScan;
+import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,7 +28,11 @@ import static net.fklj.richanemic.data.Constants.PRODUCT_QUOTA_INFINITY;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 @RunWith(SpringRunner.class)
+@MybatisTest
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
+@MapperScan("net.fklj.richanemic.adm.repository")
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
+@EnableTransactionManagement
 @ContextConfiguration(classes = {
         TestDbConfiguration.class, SpringConfig.class
 })
