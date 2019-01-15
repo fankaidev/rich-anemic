@@ -34,7 +34,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @EnableTransactionManagement
 @ContextConfiguration(classes = {
-        TestDbConfiguration.class, SpringConfig.class
+        SpringConfig.class
 })
 public abstract class BaseTest {
 
