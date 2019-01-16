@@ -18,10 +18,12 @@ import net.fklj.richanemic.rdm.repository.BalanceRepository;
 import net.fklj.richanemic.rdm.repository.CouponRepository;
 import net.fklj.richanemic.rdm.repository.OrderRepository;
 import net.fklj.richanemic.rdm.repository.PaymentRepository;
-import net.fklj.richanemic.rdm.repository.ProductRepository;
+import net.fklj.richanemic.rdm.repository.ProductVariantRepository;
+import net.fklj.richanemic.rdm.repository.VariantRepository;
 import net.fklj.richanemic.service.AppService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -29,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
+import static net.fklj.richanemic.data.Constants.VOID_COUPON_ID;
 
 @Slf4j
 @Service
@@ -47,11 +50,14 @@ public class AppServiceImpl implements AppService {
     private PaymentRepository paymentRepository;
 
     @Autowired
-    private ProductRepository productRepository;
+    private ProductVariantRepository productRepository;
+
+    @Autowired
+    private VariantRepository variantRepository;
 
     @Override
     public void callbackVariant(int productId, int variantId) throws CommerceException {
-        ProductEntity product = productRepository.lockProduct(productId).orElseThrow(
+        ProductEntity product = productRepository.lock(productId).orElseThrow(
                 InvalidProductException::new);
         List<OrderItem> items = orderRepository.getOrderItemsByVariantId(variantId);
         for (OrderItem item : items) {
@@ -72,9 +78,9 @@ public class AppServiceImpl implements AppService {
     public void payOrder(int orderId, int couponId) throws CommerceException {
         OrderEntity order = orderRepository.lockOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
-        BalanceEntity balance = balanceRepository.lock(order.getUserId());
-        CouponEntity coupon = couponRepository.lockCoupon(couponId)
-                .orElseThrow(CouponNotFoundException::new);
+        BalanceEntity balance = balanceRepository.lock(order.getUserId()).get();
+        CouponEntity coupon = couponId == VOID_COUPON_ID ? CouponEntity.VOID_COUPON :
+                couponRepository.lock(couponId).orElseThrow(CouponNotFoundException::new);
 
         final int fee = getOrderFee(order);
         final int couponFee = coupon.use();
@@ -88,20 +94,20 @@ public class AppServiceImpl implements AppService {
         OrderEntity order = orderRepository.lockOrder(orderId)
                 .orElseThrow(OrderNotFoundException::new);
         final int userId = order.getUserId();
-        Payment payment = paymentRepository.getPaymentOfOrder(orderId)
+        Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(OrderNotFoundException::new);
 
         order.refundItem(orderItemId);
 
         // don't refund coupon
-        BalanceEntity balance = balanceRepository.lock(userId);
+        BalanceEntity balance = balanceRepository.lock(userId).get();
         balance.deposit(payment.getCashFee());
     }
 
 
     private int getOrderFee(Order order) {
         List<Integer> productIds = order.getItems().stream().map(OrderItem::getProductId).collect(toList());
-        Map<Integer, Product> productMap = productRepository.getProducts(productIds);
+        Map<Integer, Product> productMap = productRepository.findProductsByIds(productIds);
         return order.getItems().stream()
                 .map(item -> getOrderItemFee(productMap, item))
                 .reduce(0, (a, b) -> a + b);
@@ -121,7 +127,7 @@ public class AppServiceImpl implements AppService {
         sortedItems.sort(Comparator.<OrderItem>comparingInt(OrderItem::getProductId));
         for (OrderItem item : sortedItems) {
             // lock in product order
-            ProductEntity product = productRepository.lockProduct(item.getProductId())
+            ProductEntity product = productRepository.lock(item.getProductId())
                     .orElseThrow(InvalidProductException::new);
             product.releaseQuota(item.getVariantId(), item.getQuantity());
         }
@@ -130,12 +136,14 @@ public class AppServiceImpl implements AppService {
     @Override
     public int createOrder(int userId, List<OrderItem> items)
             throws CommerceException {
+        log.info("txx= {}", TransactionSynchronizationManager.getCurrentTransactionName());
+
         OrderEntity order = orderRepository.createOrder(userId, items);
         List<? extends OrderItem> sortedItems = new ArrayList<>(order.getItems());
         sortedItems.sort(Comparator.<OrderItem>comparingInt(OrderItem::getProductId));
         for (OrderItem item : sortedItems) {
             // lock in product order
-            ProductEntity product = productRepository.lockProduct(item.getProductId())
+            ProductEntity product = productRepository.lock(item.getProductId())
                     .orElseThrow(InvalidProductException::new);
             product.useQuota(item.getVariantId(), item.getQuantity());
         }

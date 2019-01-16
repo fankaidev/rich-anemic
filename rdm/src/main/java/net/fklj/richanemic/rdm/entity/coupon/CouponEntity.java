@@ -6,20 +6,41 @@ import net.fklj.richanemic.data.CommerceException.CouponUsedException;
 import net.fklj.richanemic.data.CommerceException.InvalidCouponException;
 import net.fklj.richanemic.data.Coupon;
 import net.fklj.richanemic.rdm.entity.AggregateRoot;
-import net.fklj.richanemic.rdm.repository.CouponRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.Random;
 
 import static net.fklj.richanemic.data.Constants.VOID_COUPON_ID;
 
 @Setter
 @NoArgsConstructor
+@Entity
 public class CouponEntity extends Coupon implements AggregateRoot {
 
     public static final CouponEntity VOID_COUPON = new CouponEntity(VOID_COUPON_ID, 0, 0);
 
-    private CouponRepository couponRepository;
+    @Id
+    @Override
+    public int getId() {
+        return super.getId();
+    }
+
+    @Override
+    public int getUserId() {
+        return super.getUserId();
+    }
+
+    @Override
+    public int getValue() {
+        return super.getValue();
+    }
+
+    @Override
+    public boolean isUsed() {
+        return super.isUsed();
+    }
 
     protected CouponEntity(int id, int userId, int value) {
         super(id, userId, value, false);
@@ -45,12 +66,7 @@ public class CouponEntity extends Coupon implements AggregateRoot {
         }
 
         this.used = true;
-        save();
         return value;
-    }
-
-    private void save() {
-        couponRepository.save(this);
     }
 
 

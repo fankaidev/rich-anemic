@@ -9,16 +9,42 @@ import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.Variant;
 import net.fklj.richanemic.data.VariantStatus;
-import net.fklj.richanemic.rdm.repository.ProductRepository;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.Random;
 
 @Slf4j
 @Setter
 @NoArgsConstructor
+@Entity
 public class VariantEntity extends Variant {
 
-    private ProductRepository productRepository;
+    @Id
+    @Override
+    public int getId() {
+        return super.getId();
+    }
+
+    @Override
+    public int getProductId() {
+        return super.getProductId();
+    }
+
+    @Override
+    public int getQuota() {
+        return super.getQuota();
+    }
+
+    @Override
+    public int getSoldCount() {
+        return super.getSoldCount();
+    }
+
+    @Override
+    public VariantStatus getStatus() {
+        return super.getStatus();
+    }
 
     public VariantEntity(int productId, int quota) throws InvalidVariantException {
         super(new Random().nextInt(), productId, quota, 0, VariantStatus.INACTIVE);
@@ -30,12 +56,10 @@ public class VariantEntity extends Variant {
 
     public void activate() {
         this.status = VariantStatus.ACTIVE;
-        save();
     }
 
     public void inactivate() {
         this.status = VariantStatus.INACTIVE;
-        save();
     }
 
     public void useQuota(int quantity) throws ProductOutOfStockException, InactiveVariantException {
@@ -46,7 +70,6 @@ public class VariantEntity extends Variant {
             throw new ProductOutOfStockException();
         }
         this.soldCount += quantity;
-        save();
     }
 
     public void releaseQuota(int quantity) throws InvalidQuantityException {
@@ -54,11 +77,6 @@ public class VariantEntity extends Variant {
             throw new InvalidQuantityException();
         }
         this.soldCount -= quantity;
-        save();
-    }
-
-    private void save() {
-        productRepository.saveVariant(this);
     }
 
 }

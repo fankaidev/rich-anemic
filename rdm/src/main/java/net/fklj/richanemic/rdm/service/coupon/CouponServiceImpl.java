@@ -1,5 +1,6 @@
 package net.fklj.richanemic.rdm.service.coupon;
 
+import lombok.extern.slf4j.Slf4j;
 import net.fklj.richanemic.data.CommerceException.CouponNotFoundException;
 import net.fklj.richanemic.data.CommerceException.CouponUsedException;
 import net.fklj.richanemic.data.CommerceException.InvalidCouponException;
@@ -12,7 +13,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static net.fklj.richanemic.data.Constants.VOID_COUPON_ID;
+
+@Slf4j
 @Service
 public class CouponServiceImpl implements CouponTxService {
 
@@ -21,20 +26,24 @@ public class CouponServiceImpl implements CouponTxService {
 
     @Override
     public int useCoupon(int couponId) throws CouponNotFoundException, CouponUsedException {
-        CouponEntity coupon = couponRepository.lockCoupon(couponId)
-                .orElseThrow(CouponNotFoundException::new);
+        CouponEntity coupon = couponId == VOID_COUPON_ID ? CouponEntity.VOID_COUPON :
+                couponRepository.lock(couponId).orElseThrow(CouponNotFoundException::new);
         return coupon.use();
     }
 
     @Override
     public List<Coupon> getCouponsOfUser(int userId) {
-        return couponRepository.getCouponsOfUser(userId);
+        List<CouponEntity> byUserId = couponRepository.findByUserId(userId);
+        return byUserId
+                .stream()
+                .map(ce -> (Coupon)ce)
+                .collect(Collectors.toList());
     }
 
     @Override
     public int grantCoupon(int userId, int value) throws InvalidCouponException {
         CouponEntity coupon = new CouponEntity(userId, value);
-        couponRepository.save(coupon);
+        coupon = couponRepository.save(coupon);
         return coupon.getId();
     }
 

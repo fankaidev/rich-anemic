@@ -11,10 +11,13 @@ import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.OrderStatus;
 import net.fklj.richanemic.data.Payment;
 import net.fklj.richanemic.rdm.entity.AggregateRoot;
-import net.fklj.richanemic.rdm.repository.OrderRepository;
 import net.fklj.richanemic.rdm.repository.PaymentRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Transient;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -22,9 +25,24 @@ import java.util.stream.Collectors;
 
 @Setter
 @NoArgsConstructor
+@Entity
 public class OrderEntity extends Order implements AggregateRoot {
 
-    private OrderRepository orderRepository;
+    @Id
+    @Override
+    public int getId() {
+        return super.getId();
+    }
+
+    @Override
+    public int getUserId() {
+        return super.getUserId();
+    }
+
+    @Override
+    public OrderStatus getStatus() {
+        return super.getStatus();
+    }
 
     private PaymentRepository paymentRepository;
 
@@ -47,6 +65,7 @@ public class OrderEntity extends Order implements AggregateRoot {
         }
     }
 
+    @Transient
     public List<OrderItemEntity> getItemEntities() {
         return super.getItems().stream().map(item -> (OrderItemEntity)item).collect(Collectors.toList());
     }
@@ -57,17 +76,12 @@ public class OrderEntity extends Order implements AggregateRoot {
             return false;
         }
         this.status = OrderStatus.CANCELLED;
-        save();
 
         for (OrderItemEntity item : getItemEntities()) {
             item.cancel();
         }
 
         return true;
-    }
-
-    private void save() {
-        orderRepository.updateOrderStatus(id, status);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -89,14 +103,15 @@ public class OrderEntity extends Order implements AggregateRoot {
                 .cashFee(cashFee)
                 .couponId(couponId)
                 .build();
-        paymentRepository.savePayment(payment);
+        PaymentEntity entity = new PaymentEntity();
+        BeanUtils.copyProperties(payment, entity);
+        paymentRepository.save(entity);
 
         for (OrderItemEntity item : getItemEntities()) {
             item.pay();
         }
 
         this.status = OrderStatus.PAID;
-        save();
     }
 
 }

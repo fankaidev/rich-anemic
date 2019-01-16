@@ -14,9 +14,11 @@ import net.fklj.richanemic.data.Product;
 import net.fklj.richanemic.data.ProductStatus;
 import net.fklj.richanemic.data.Variant;
 import net.fklj.richanemic.rdm.entity.AggregateRoot;
-import net.fklj.richanemic.rdm.repository.ProductRepository;
+import net.fklj.richanemic.rdm.repository.VariantRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.List;
 import java.util.Random;
 
@@ -26,9 +28,36 @@ import static net.fklj.richanemic.data.Constants.PRODUCT_QUOTA_INFINITY;
 @Slf4j
 @Setter
 @NoArgsConstructor
+@Entity
 public class ProductEntity extends Product implements AggregateRoot {
 
-    private ProductRepository productRepository;
+    @Id
+    @Override
+    public int getId() {
+        return super.getId();
+    }
+
+    @Override
+    public int getPrice() {
+        return super.getPrice();
+    }
+
+    @Override
+    public int getQuota() {
+        return super.getQuota();
+    }
+
+    @Override
+    public int getSoldCount() {
+        return super.getSoldCount();
+    }
+
+    @Override
+    public ProductStatus getStatus() {
+        return super.getStatus();
+    }
+
+    private VariantRepository variantRepository;
 
     public ProductEntity(int id, int price, int quota, int soldCount, ProductStatus status) {
         super(id, price, quota, soldCount, status);
@@ -49,8 +78,8 @@ public class ProductEntity extends Product implements AggregateRoot {
     @Transactional(rollbackFor = Exception.class)
     public int createVariant(int quota) throws CommerceException {
         checkQuota(quota);
-        Variant variant = new VariantEntity(id, quota);
-        productRepository.saveVariant(variant);
+        VariantEntity variant = new VariantEntity(id, quota);
+        variantRepository.save(variant);
         return variant.getId();
     }
 
@@ -61,7 +90,7 @@ public class ProductEntity extends Product implements AggregateRoot {
         if (requiredQuota == PRODUCT_QUOTA_INFINITY) {
             throw new VariantQuotaException();
         }
-        List<Variant> variants = productRepository.getVariantByProductId(id);
+        List<VariantEntity> variants = variantRepository.findByProductId(id);
         int totalVariantQuota = variants.stream().map(Variant::getQuota).reduce(0, (a, b) -> a+b);
         if (totalVariantQuota + requiredQuota > getQuota()) {
             throw new VariantQuotaException();
@@ -71,13 +100,11 @@ public class ProductEntity extends Product implements AggregateRoot {
     @Transactional(rollbackFor = Exception.class)
     public void activate() {
         this.status = ProductStatus.ACTIVE;
-        save();
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void inactivate() {
         this.status = ProductStatus.INACTIVE;
-        save();
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -89,7 +116,6 @@ public class ProductEntity extends Product implements AggregateRoot {
 
         VariantEntity variant = getVariant(variantId);
         variant.useQuota(quantity);
-        save();
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -101,19 +127,14 @@ public class ProductEntity extends Product implements AggregateRoot {
 
         VariantEntity variant = getVariant(variantId);
         variant.releaseQuota(quantity);
-        save();
     }
 
     private VariantEntity getVariant(int variantId) throws CommerceException {
-        VariantEntity variant = productRepository.getVariantEntity(variantId).orElseThrow(InvalidVariantException::new);
+        VariantEntity variant = variantRepository.findById(variantId).orElseThrow(InvalidVariantException::new);
         if (variant.getProductId() != this.id) {
             throw new VariantMismatchException();
         }
         return variant;
-    }
-
-    private void save() {
-        productRepository.saveProduct(this);
     }
 
     @Transactional(rollbackFor = Exception.class)

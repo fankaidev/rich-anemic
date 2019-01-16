@@ -89,7 +89,7 @@ public class OrderServiceImpl implements OrderTxService {
 
     @Override
     public Optional<Payment> getPaymentOfOrder(int orderId) {
-        return paymentRepository.getPaymentOfOrder(orderId);
+        return paymentRepository.findByOrderId(orderId).map(o -> o);
     }
 
     @Override

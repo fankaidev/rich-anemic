@@ -4,17 +4,23 @@ import net.fklj.richanemic.BaseTest.SpringConfig;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.OrderItemStatus;
+import net.fklj.richanemic.rdm.entity.balance.BalanceEntity;
+import net.fklj.richanemic.rdm.repository.BalanceRepository;
 import net.fklj.richanemic.service.AppService;
 import net.fklj.richanemic.service.coupon.CouponTxService;
 import net.fklj.richanemic.service.product.ProductTxService;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,8 +30,11 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 
 @RunWith(SpringRunner.class)
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
+@DataJpaTest
+@AutoConfigurationPackage
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 @ContextConfiguration(classes = {
-        TestDbConfiguration.class, SpringConfig.class
+        SpringConfig.class
 })
 public abstract class BaseTest {
 
@@ -41,6 +50,9 @@ public abstract class BaseTest {
 
     @Autowired
     private CouponTxService couponService;
+
+    @Autowired
+    private BalanceRepository balanceRepository;
 
     protected int PRODUCT1_INACTIVE_ID;
     protected int P1_VAR1_INACTIVE_ID;
@@ -84,6 +96,11 @@ public abstract class BaseTest {
 
         USER1_COUPON_10_ID = couponService.grantCoupon(USER1_ID, 10);
         USER1_COUPON_20_ID = couponService.grantCoupon(USER1_ID, 20);
+
+        BalanceEntity balance = new BalanceEntity();
+        balance.setUserId(USER1_ID);
+        balance.setAmount(10000);
+        balanceRepository.save(balance);
     }
 
 

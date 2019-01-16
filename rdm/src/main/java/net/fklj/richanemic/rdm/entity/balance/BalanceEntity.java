@@ -1,20 +1,30 @@
 package net.fklj.richanemic.rdm.entity.balance;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.fklj.richanemic.data.Balance;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.CommerceException.InsufficientBalanceException;
 import net.fklj.richanemic.data.CommerceException.InvalidBalanceAmountException;
 import net.fklj.richanemic.rdm.entity.AggregateRoot;
-import net.fklj.richanemic.rdm.repository.BalanceRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 @Slf4j
-@Setter
+@Entity
 public class BalanceEntity extends Balance implements AggregateRoot {
 
-    private BalanceRepository balanceRepository;
+    @Override
+    @Id
+    public int getUserId() {
+        return userId;
+    }
+
+    @Override
+    public int getAmount() {
+        return amount;
+    }
 
     // in lock mode
     public void deposit(int depositAmount) throws InvalidBalanceAmountException {
@@ -22,7 +32,6 @@ public class BalanceEntity extends Balance implements AggregateRoot {
             throw new InvalidBalanceAmountException();
         }
         this.amount += depositAmount;
-        save();
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -35,11 +44,6 @@ public class BalanceEntity extends Balance implements AggregateRoot {
             throw new InsufficientBalanceException();
         }
         this.amount -= useAmount;
-        save();
-    }
-
-    private void save() {
-        balanceRepository.save(userId, amount);
     }
 
 }

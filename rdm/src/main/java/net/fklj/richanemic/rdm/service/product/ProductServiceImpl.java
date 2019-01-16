@@ -8,12 +8,13 @@ import net.fklj.richanemic.data.Product;
 import net.fklj.richanemic.data.Variant;
 import net.fklj.richanemic.event.OrderCancelledEvent;
 import net.fklj.richanemic.rdm.entity.product.ProductEntity;
-import net.fklj.richanemic.rdm.repository.ProductRepository;
+import net.fklj.richanemic.rdm.repository.ProductVariantRepository;
 import net.fklj.richanemic.service.product.ProductTxService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -24,32 +25,32 @@ import java.util.Optional;
 public class ProductServiceImpl implements ProductTxService {
 
     @Autowired
-    private ProductRepository productRepository;
+    private ProductVariantRepository productRepository;
 
     @Override
     public Optional<Product> getProduct(int productId) {
-        return productRepository.getProduct(productId);
+        return productRepository.findProductById(productId).map(o->o);
     }
 
     @Override
     public Optional<Variant> getVariant(int variantId) {
-        return productRepository.getVariant(variantId);
+        return productRepository.getVariant(variantId).map(o -> o);
     }
 
     @Override
     public List<Variant> getVariantsOfProduct(int productId) {
-        return productRepository.getVariantByProductId(productId);
+        return new ArrayList<>(productRepository.getVariantByProductId(productId));
     }
 
     @Override
     public Map<Integer, Product> getProducts(Collection<Integer> productIds) {
-        return productRepository.getProducts(productIds);
+        return productRepository.findProductsByIds(productIds);
     }
 
     /*************************** transaction ********************/
 
     private ProductEntity lock(int productId) throws InvalidProductException {
-        ProductEntity product = productRepository.lockProduct(productId).orElseThrow(InvalidProductException::new);
+        ProductEntity product = productRepository.lock(productId).orElseThrow(InvalidProductException::new);
 
         // mock delay
         try {
