@@ -5,6 +5,7 @@ import net.fklj.richanemic.data.CommerceException.DuplicateProductException;
 import net.fklj.richanemic.data.CommerceException.InactiveProductException;
 import net.fklj.richanemic.data.CommerceException.InactiveVariantException;
 import net.fklj.richanemic.data.CommerceException.InvalidQuantityException;
+import net.fklj.richanemic.data.CommerceException.InvalidVariantException;
 import net.fklj.richanemic.data.CommerceException.ProductOutOfStockException;
 import net.fklj.richanemic.data.CommerceException.VariantMismatchException;
 import net.fklj.richanemic.data.Order;
@@ -142,7 +143,7 @@ public class OrderTest extends BaseTest {
         createOrder(USER1_ID, PRODUCT3_Q9_ID, P3_VAR1_Q1_ID, 1);
     }
 
-    @Test(expected = VariantMismatchException.class)
+    @Test(expected = InvalidVariantException.class)
     public void testCreateOrderWithMismatch() throws CommerceException {
         createOrder(USER1_ID, PRODUCT3_Q9_ID, P2_VAR1_INACTIVE_ID, 2);
     }

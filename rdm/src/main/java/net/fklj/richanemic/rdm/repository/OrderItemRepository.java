@@ -1,13 +1,12 @@
 package net.fklj.richanemic.rdm.repository;
 
 import net.fklj.richanemic.data.OrderItem;
-import net.fklj.richanemic.rdm.entity.order.OrderItemEntity;
 
 import java.util.List;
 
-public interface OrderItemRepository extends BaseRepository<OrderItemEntity, Integer> {
+public interface OrderItemRepository extends BaseRepository<OrderItem, Integer> {
 
-    List<OrderItemEntity> findByOrderId(int orderId);
+    List<OrderItem> findByOrderId(int orderId);
 
     List<OrderItem> findByProductId(int productId);
 

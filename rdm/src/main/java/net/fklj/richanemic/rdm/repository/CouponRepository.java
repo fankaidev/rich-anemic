@@ -1,11 +1,11 @@
 package net.fklj.richanemic.rdm.repository;
 
-import net.fklj.richanemic.rdm.entity.coupon.CouponEntity;
+import net.fklj.richanemic.data.Coupon;
 
 import java.util.List;
 
-public interface CouponRepository extends BaseRepository<CouponEntity, Integer> {
+public interface CouponRepository extends BaseRepository<Coupon, Integer> {
 
-    List<CouponEntity> findByUserId(int userId);
+    List<Coupon> findByUserId(int userId);
 
 }

@@ -7,7 +7,6 @@ import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.Product;
 import net.fklj.richanemic.data.Variant;
 import net.fklj.richanemic.event.OrderCancelledEvent;
-import net.fklj.richanemic.rdm.entity.product.ProductEntity;
 import net.fklj.richanemic.rdm.repository.ProductVariantRepository;
 import net.fklj.richanemic.service.product.ProductTxService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,8 +48,8 @@ public class ProductServiceImpl implements ProductTxService {
 
     /*************************** transaction ********************/
 
-    private ProductEntity lock(int productId) throws InvalidProductException {
-        ProductEntity product = productRepository.lock(productId).orElseThrow(InvalidProductException::new);
+    private Product lock(int productId) throws InvalidProductException {
+        Product product = productRepository.lock(productId).orElseThrow(InvalidProductException::new);
 
         // mock delay
         try {
@@ -64,14 +63,16 @@ public class ProductServiceImpl implements ProductTxService {
 
     @Override
     public int createProduct(int price, int quota) throws CommerceException {
-        ProductEntity product = new ProductEntity(price, quota);
+        int price1 = price;
+        int quota1 = quota;
+        Product product = new Product(price1, quota1);
         productRepository.saveProduct(product);
         return product.getId();
     }
 
     @Override
     public int createVariant(int productId, int quota) throws CommerceException {
-        ProductEntity product = lock(productId);
+        Product product = lock(productId);
         return product.createVariant(quota);
     }
 

@@ -1,7 +1,7 @@
 package net.fklj.richanemic.rdm.repository;
 
-import net.fklj.richanemic.rdm.entity.balance.BalanceEntity;
+import net.fklj.richanemic.data.Balance;
 
-public interface BalanceRepository extends BaseRepository<BalanceEntity, Integer> {
+public interface BalanceRepository extends BaseRepository<Balance, Integer> {
 
 }

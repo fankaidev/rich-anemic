@@ -1,10 +1,10 @@
 package net.fklj.richanemic.rdm.repository;
 
-import net.fklj.richanemic.rdm.entity.order.PaymentEntity;
+import net.fklj.richanemic.data.Payment;
 
 import java.util.Optional;
 
-public interface PaymentRepository extends BaseRepository<PaymentEntity, Integer> {
+public interface PaymentRepository extends BaseRepository<Payment, Integer> {
 
-    Optional<PaymentEntity> findByOrderId(int orderId);
+    Optional<Payment> findByOrderId(int orderId);
 }

@@ -84,7 +84,7 @@ public class ProductTest extends BaseTest {
         productService.createVariant(-1, 1);
     }
 
-    @Test(expected = VariantMismatchException.class)
+    @Test(expected = InvalidVariantException.class)
     public void testProductVariantMismatch() throws CommerceException {
         productService.activateVariant(PRODUCT1_INACTIVE_ID, P2_VAR1_INACTIVE_ID);
     }

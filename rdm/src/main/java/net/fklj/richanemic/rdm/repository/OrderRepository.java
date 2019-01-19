@@ -3,9 +3,6 @@ package net.fklj.richanemic.rdm.repository;
 import net.fklj.richanemic.data.CommerceException.CreateOrderException;
 import net.fklj.richanemic.data.Order;
 import net.fklj.richanemic.data.OrderItem;
-import net.fklj.richanemic.rdm.entity.order.OrderEntity;
-import net.fklj.richanemic.rdm.entity.order.OrderItemEntity;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,34 +22,20 @@ public class OrderRepository {
     @Autowired
     private OrderItemRepository orderItemRepository;
 
-    @Autowired
-    private PaymentRepository paymentRepository;
-
-    public OrderEntity createOrder(int userId, List<OrderItem> items) throws CreateOrderException {
-        OrderEntity order = new OrderEntity(userId, items);
-        for (OrderItem item : order.getItems()) {
-            OrderItemEntity entity = new OrderItemEntity();
-            BeanUtils.copyProperties(item, entity);
-            orderItemRepository.save(entity);
-        }
-
+    public Order createOrder(int userId, List<OrderItem> items) throws CreateOrderException {
+        int userId1 = userId;
+        List<OrderItem> items1 = items;
+        Order order = new Order(userId1, items1);
         orderEntityRepository.save(order);
         return order;
     }
 
     public Optional<Order> getOrder(int orderId) {
-        Optional<OrderEntity> order = orderEntityRepository.findById(orderId);
-        List<OrderItemEntity> items = orderItemRepository.findByOrderId(orderId);
-        order.ifPresent(o -> o.setItems(items));
-        order.ifPresent(o -> o.setPaymentRepository(paymentRepository));
-        return order.map(o -> o);
+        return orderEntityRepository.findById(orderId);
     }
 
-    public Optional<OrderEntity> lockOrder(int orderId) {
-        Optional<OrderEntity> order = orderEntityRepository.lock(orderId);
-        List<OrderItemEntity> items = orderItemRepository.findByOrderId(orderId);
-        order.ifPresent(o -> o.setItems(items));
-        order.ifPresent(o -> o.setPaymentRepository(paymentRepository));
+    public Optional<Order> lockOrder(int orderId) {
+        Optional<Order> order = orderEntityRepository.lock(orderId);
         return order;
     }
 
@@ -61,7 +44,7 @@ public class OrderRepository {
     }
 
     public Map<Integer, OrderItem> getOrderItemsByOrderItemIds(Collection<Integer> orderItemIds) {
-        List<OrderItemEntity> allById = new ArrayList<>();
+        List<OrderItem> allById = new ArrayList<>();
         orderItemRepository.findAllById(orderItemIds).forEach(it -> allById.add(it));
         return allById.stream().collect(Collectors.toMap(p -> p.getId(), p->p));
     }

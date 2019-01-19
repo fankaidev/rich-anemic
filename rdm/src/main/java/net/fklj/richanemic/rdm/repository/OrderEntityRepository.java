@@ -1,5 +1,5 @@
 package net.fklj.richanemic.rdm.repository;
 
-import net.fklj.richanemic.rdm.entity.order.OrderEntity;
+import net.fklj.richanemic.data.Order;
 
-public interface OrderEntityRepository extends BaseRepository<OrderEntity, Integer> {}
+public interface OrderEntityRepository extends BaseRepository<Order, Integer> {}

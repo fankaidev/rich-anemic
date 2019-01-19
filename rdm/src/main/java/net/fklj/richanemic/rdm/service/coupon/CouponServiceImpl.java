@@ -5,12 +5,12 @@ import net.fklj.richanemic.data.CommerceException.CouponNotFoundException;
 import net.fklj.richanemic.data.CommerceException.CouponUsedException;
 import net.fklj.richanemic.data.CommerceException.InvalidCouponException;
 import net.fklj.richanemic.data.Coupon;
-import net.fklj.richanemic.rdm.entity.coupon.CouponEntity;
 import net.fklj.richanemic.rdm.repository.CouponRepository;
 import net.fklj.richanemic.service.coupon.CouponTxService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.Id;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,14 +26,14 @@ public class CouponServiceImpl implements CouponTxService {
 
     @Override
     public int useCoupon(int couponId) throws CouponNotFoundException, CouponUsedException {
-        CouponEntity coupon = couponId == VOID_COUPON_ID ? CouponEntity.VOID_COUPON :
+        Coupon coupon = couponId == VOID_COUPON_ID ? Coupon.VOID_COUPON :
                 couponRepository.lock(couponId).orElseThrow(CouponNotFoundException::new);
         return coupon.use();
     }
 
     @Override
     public List<Coupon> getCouponsOfUser(int userId) {
-        List<CouponEntity> byUserId = couponRepository.findByUserId(userId);
+        List<Coupon> byUserId = couponRepository.findByUserId(userId);
         return byUserId
                 .stream()
                 .map(ce -> (Coupon)ce)
@@ -42,7 +42,9 @@ public class CouponServiceImpl implements CouponTxService {
 
     @Override
     public int grantCoupon(int userId, int value) throws InvalidCouponException {
-        CouponEntity coupon = new CouponEntity(userId, value);
+        int userId1 = userId;
+        int value1 = value;
+        Coupon coupon = new Coupon(userId1, value1);
         coupon = couponRepository.save(coupon);
         return coupon.getId();
     }

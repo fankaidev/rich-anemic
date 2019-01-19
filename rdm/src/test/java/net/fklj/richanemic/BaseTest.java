@@ -1,16 +1,17 @@
 package net.fklj.richanemic;
 
 import net.fklj.richanemic.BaseTest.SpringConfig;
+import net.fklj.richanemic.data.Balance;
 import net.fklj.richanemic.data.CommerceException;
 import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.OrderItemStatus;
-import net.fklj.richanemic.rdm.entity.balance.BalanceEntity;
 import net.fklj.richanemic.rdm.repository.BalanceRepository;
 import net.fklj.richanemic.service.AppService;
 import net.fklj.richanemic.service.coupon.CouponTxService;
 import net.fklj.richanemic.service.product.ProductTxService;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -22,6 +23,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Id;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -97,7 +99,7 @@ public abstract class BaseTest {
         USER1_COUPON_10_ID = couponService.grantCoupon(USER1_ID, 10);
         USER1_COUPON_20_ID = couponService.grantCoupon(USER1_ID, 20);
 
-        BalanceEntity balance = new BalanceEntity();
+        Balance balance = new Balance();
         balance.setUserId(USER1_ID);
         balance.setAmount(10000);
         balanceRepository.save(balance);
@@ -112,12 +114,16 @@ public abstract class BaseTest {
     }
 
     protected OrderItem genItem(int productId, int variantId, int quantity) {
-        return OrderItem.builder()
+        OrderItem item = OrderItem.builder()
                 .productId(productId)
                 .variantId(variantId)
                 .quantity(quantity)
                 .status(OrderItemStatus.PENDING)
                 .build();
+
+        OrderItem entity = new OrderItem();
+        BeanUtils.copyProperties(item, entity);
+        return entity;
     }
 
 }

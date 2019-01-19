@@ -7,7 +7,6 @@ import net.fklj.richanemic.data.Order;
 import net.fklj.richanemic.data.OrderItem;
 import net.fklj.richanemic.data.Payment;
 import net.fklj.richanemic.event.OrderCancelledEvent;
-import net.fklj.richanemic.rdm.entity.order.OrderEntity;
 import net.fklj.richanemic.rdm.repository.OrderRepository;
 import net.fklj.richanemic.rdm.repository.PaymentRepository;
 import net.fklj.richanemic.service.order.OrderTxService;
@@ -60,7 +59,7 @@ public class OrderServiceImpl implements OrderTxService {
 
     /***************** transaction *******************/
 
-    private OrderEntity lock(int orderId) throws OrderNotFoundException {
+    private Order lock(int orderId) throws OrderNotFoundException {
         return orderRepository.lockOrder(orderId).orElseThrow(OrderNotFoundException::new);
     }
 
@@ -71,7 +70,7 @@ public class OrderServiceImpl implements OrderTxService {
 
     @Override
     public boolean cancel(int orderId) throws OrderNotFoundException {
-        OrderEntity order = lock(orderId);
+        Order order = lock(orderId);
         return order.cancel();
     }
 
@@ -94,7 +93,7 @@ public class OrderServiceImpl implements OrderTxService {
 
     @Override
     public void pay(int orderId, int couponId, int cashFee) throws OrderNotFoundException {
-        OrderEntity order = lock(orderId);
+        Order order = lock(orderId);
         order.pay(couponId, cashFee);
     }
 
